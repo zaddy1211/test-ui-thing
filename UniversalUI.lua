@@ -231,6 +231,30 @@ local ThemeArtFiles = {
     ["Hello Kitty"] = "pastel-cat.png",
     ["Cherry Blossom"] = "cherry-blossom-dusk.png",
 }
+
+-- Public GitHub asset source. Missing artwork is downloaded once and then
+-- reused from the executor cache on later launches.
+local ThemeArtBaseURL = "https://raw.githubusercontent.com/zaddy1211/test-ui-thing/main/assets/"
+local ThemeArtCacheDir = ASSET_DIR
+
+local function DownloadThemeArt(fileName)
+    if type(fileName) ~= "string" or typeof(writefile) ~= "function" then return nil end
+    EnsureAssetFolders()
+    local destination = ThemeArtCacheDir .. "/" .. fileName
+    if typeof(isfile) == "function" and isfile(destination) then return destination end
+
+    local ok, body = pcall(function()
+        if game.HttpGet then return game:HttpGet(ThemeArtBaseURL .. fileName) end
+        return nil
+    end)
+    if not ok or type(body) ~= "string" or #body < 64 then return nil end
+
+    local wrote = pcall(writefile, destination, body)
+    if wrote and (typeof(isfile) ~= "function" or isfile(destination)) then
+        return destination
+    end
+    return nil
+end
 -- Share theme colors
 pcall(function()
     getgenv().__kzQBAccent = T.Accent
@@ -464,6 +488,8 @@ local function ResolveThemeArt(theme)
         "KZ_UI_ThemeAssets/" .. fileName,
         fileName,
     }
+    local downloaded = DownloadThemeArt(fileName)
+    if downloaded then table.insert(candidates, 1, downloaded) end
     for _, path in ipairs(candidates) do
         if isfile(path) then
             local ok, asset = pcall(ResolveCustomAsset, path)
