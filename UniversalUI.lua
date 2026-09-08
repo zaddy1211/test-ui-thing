@@ -562,7 +562,7 @@ local MARGIN = 12
 
 local Sidebar = New("Frame", {
     Parent = Window, Name = "Sidebar", Size = UDim2.new(0, SIDEBAR_COMPACT, 1, 0),
-    BackgroundColor3 = T.SidebarBG, BackgroundTransparency = 0.38,
+    BackgroundColor3 = T.SidebarBG, BackgroundTransparency = 0.62,
     BorderSizePixel = 0, ZIndex = 20, ClipsDescendants = true,
 })
 
@@ -670,7 +670,7 @@ local SideFooter = New("Frame", {
 })
 local Profile = New("Frame", {
     Parent = SideFooter, Position = UDim2.fromOffset(10, 8), Size = UDim2.new(1, -20, 0, 50),
-    BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.5, ZIndex = 23,
+    BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.7, ZIndex = 23,
 })
 Corner(Profile, 12)
 Gradient(Profile, {function(t) return Mix(t.ElementBG, t.Accent3, .13) end, function(t) return Mix(t.ElementBG, t.Accent2, .10) end}, 15)
@@ -742,7 +742,7 @@ local Breadcrumb = New("TextLabel", {
 local SearchBox = New("Frame", {
     Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -104, 0.5, 0),
     Size = UDim2.fromOffset(210, 36), BackgroundColor3 = T.ControlBG,
-    BackgroundTransparency = 0.52, ZIndex = 12,
+    BackgroundTransparency = 0.72, ZIndex = 12,
 })
 Corner(SearchBox, 11)
 Gradient(SearchBox, {function(t) return Mix(t.ControlBG, t.Accent3, .12) end, function(t) return Mix(t.ControlBG, t.Accent2, .10) end}, 0)
@@ -762,7 +762,7 @@ local function IconButton(icon, xOffset)
     local button = New("ImageButton", {
         Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5),
         Position = UDim2.new(1, xOffset, 0.5, 0), Size = UDim2.fromOffset(32, 32),
-        BackgroundColor3 = T.ControlBG, BackgroundTransparency = 0.44,
+        BackgroundColor3 = T.ControlBG, BackgroundTransparency = 0.68,
         Image = icon, ImageColor3 = T.TextSub, AutoButtonColor = false, ZIndex = 12,
     })
     Corner(button, 10)
@@ -770,7 +770,7 @@ local function IconButton(icon, xOffset)
         Tween(button, 0.16, {BackgroundTransparency = 0, ImageColor3 = T.TextMain})
     end)
     button.MouseLeave:Connect(function()
-        Tween(button, 0.16, {BackgroundTransparency = 0.44, ImageColor3 = T.TextSub})
+        Tween(button, 0.16, {BackgroundTransparency = 0.68, ImageColor3 = T.TextSub})
     end)
     return button
 end
@@ -1286,7 +1286,7 @@ end
 -- artwork remains visible instead of being hidden behind opaque rectangles.
 __KZ_QOL.ApplyGlassControl = function(control, radius)
     if not control or not control.Parent then return end
-    control.BackgroundTransparency = 0.60
+    control.BackgroundTransparency = 0.78
     control.ClipsDescendants = true
     local controlScale = New("UIScale", {Parent = control, Scale = 1})
     local glint = New("Frame", {
@@ -1303,12 +1303,12 @@ __KZ_QOL.ApplyGlassControl = function(control, radius)
         }),
     })
     control.MouseEnter:Connect(function()
-        Tween(control, 0.16, {BackgroundTransparency = 0.18}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(control, 0.16, {BackgroundTransparency = 0.22}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(controlScale, 0.16, {Scale = 1.025}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(glint, 0.16, {BackgroundTransparency = 0.78}, Enum.EasingStyle.Sine)
     end)
     control.MouseLeave:Connect(function()
-        Tween(control, 0.18, {BackgroundTransparency = 0.60}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(control, 0.18, {BackgroundTransparency = 0.78}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(controlScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(glint, 0.18, {BackgroundTransparency = 0.91}, Enum.EasingStyle.Sine)
     end)
@@ -1329,11 +1329,10 @@ local function Section(page, title, subtitle, widthScale)
     local card = New("Frame", {
         Parent = page.Body, Size = UDim2.new(widthScale or 1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.SectionBG,
-        BackgroundTransparency = 0.52,
+        BackgroundTransparency = 0.72,
     })
     Corner(card, 14)
     local cardScale = New("UIScale", {Parent = card, Scale = 1})
-    local cardGlint
     Gradient(card, {
         function(t) return Mix(t.SectionBG, t.Accent3, 0.10) end,
         "SectionBG",
@@ -1351,26 +1350,16 @@ local function Section(page, title, subtitle, widthScale)
     })
     New("UIListLayout", {Parent = card, Padding = UDim.new(0, 9), SortOrder = Enum.SortOrder.LayoutOrder})
     card.MouseEnter:Connect(function()
-        Tween(card, 0.18, {BackgroundTransparency = 0.34}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(card, 0.18, {BackgroundTransparency = 0.52}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(cardScale, 0.18, {Scale = 1.006}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        if cardGlint then Tween(cardGlint, 0.18, {BackgroundTransparency = 0.86}, Enum.EasingStyle.Sine) end
     end)
     card.MouseLeave:Connect(function()
-        Tween(card, 0.2, {BackgroundTransparency = 0.52}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(card, 0.2, {BackgroundTransparency = 0.72}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(cardScale, 0.2, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        if cardGlint then Tween(cardGlint, 0.2, {BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine) end
     end)
     local heading = New("Frame", {
         Parent = card, Size = UDim2.new(1, 0, 0, subtitle and 42 or 25), BackgroundTransparency = 1,
     })
-    cardGlint = New("Frame", {
-        Parent = heading, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = T.TextMain,
-        BackgroundTransparency = 0.94, BorderSizePixel = 0, Active = false,
-    })
-    Corner(cardGlint, 13)
-    New("UIGradient", {Parent = cardGlint, Rotation = 90, Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1),
-    })})
     local accent = New("Frame", {
         Parent = heading, Position = UDim2.fromOffset(0, 2), Size = UDim2.fromOffset(3, 18),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0,
@@ -1419,7 +1408,6 @@ local function Section(page, title, subtitle, widthScale)
     BindTheme(function()
         if card.Parent then
             card.BackgroundColor3 = T.SectionBG; accent.BackgroundColor3 = T.Accent
-            cardGlint.BackgroundColor3 = T.TextMain
             titleLabel.TextColor3 = T.TextMain
             if subLabel then subLabel.TextColor3 = T.TextSub end
             resetButton.BackgroundColor3 = T.ControlBG
@@ -1441,7 +1429,7 @@ end
 local function ElementBase(page, parent, label, height)
     local row = New("Frame", {
         Parent = parent, Size = UDim2.new(1, 0, 0, height or 44),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.76,
     })
     Corner(row, 10)
     local rowGlint = New("Frame", {
@@ -1473,13 +1461,13 @@ local function ElementBase(page, parent, label, height)
     table.insert(page.Searchables, searchable)
     if __KZ_QOL.RegisterFavoriteRow then __KZ_QOL.RegisterFavoriteRow(page, label, row, searchable) end
     row.MouseEnter:Connect(function()
-        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.18})
+        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.28})
         Tween(rowScale, 0.18, {Scale = 1.016}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.03}, Enum.EasingStyle.Sine)
         Tween(rowGlint, 0.18, {BackgroundTransparency = 0.78}, Enum.EasingStyle.Sine)
     end)
     row.MouseLeave:Connect(function()
-        Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58})
+        Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.76})
         Tween(rowScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.72}, Enum.EasingStyle.Sine)
         Tween(rowGlint, 0.18, {BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine)
@@ -1617,7 +1605,7 @@ local function Slider(page, parentCard, label, min, max, value, suffix, onChange
     local valueText = New("TextBox", {
         Parent = row, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 5),
         Size = UDim2.fromOffset(82, 23), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.60, BorderSizePixel = 0,
+        BackgroundTransparency = 0.78, BorderSizePixel = 0,
         Text = FormatNumber(current) .. (suffix or ""), Font = Enum.Font.GothamSemibold,
         TextSize = 10, TextColor3 = T.Accent, TextXAlignment = Enum.TextXAlignment.Center,
         ClearTextOnFocus = false, MultiLine = false, ZIndex = 5,
@@ -1903,7 +1891,7 @@ local function Dropdown(page, parentCard, label, options, default, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(132, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.60,
+        BackgroundTransparency = 0.78,
         Text = selected, TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -2015,7 +2003,7 @@ local function Button(page, parentCard, label, emphasized, action)
     local row = New("Frame", {
         Parent = parentCard, Size = UDim2.new(1, 0, 0, 42),
         BackgroundColor3 = emphasized and T.Accent or T.ElementBG,
-        BackgroundTransparency = emphasized and 0.22 or 0.55,
+        BackgroundTransparency = emphasized and 0.38 or 0.74,
     })
     Corner(row, 10)
     local buttonGlint = New("Frame", {
@@ -2097,9 +2085,9 @@ local function Button(page, parentCard, label, emphasized, action)
         Tween(buttonEdge, 0.18, {BackgroundTransparency = emphasized and 0.4 or 0.72}, Enum.EasingStyle.Sine)
         Tween(buttonGlint, 0.18, {BackgroundTransparency = 0.92}, Enum.EasingStyle.Sine)
         if emphasized then
-            Tween(row, 0.18, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.22})
+            Tween(row, 0.18, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.38})
         else
-            Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.55})
+            Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.74})
         end
     end)
     BindTheme(function()
@@ -2128,7 +2116,7 @@ local function Textbox(page, parentCard, label, placeholder, default, onChanged)
     local box = New("TextBox", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(150, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.60,
+        BackgroundTransparency = 0.78,
         Text = tostring(default or ""), PlaceholderText = placeholder or "Enter text...",
         PlaceholderColor3 = T.TextSub, TextColor3 = T.TextMain, Font = Enum.Font.Gotham,
         TextSize = 10, ClearTextOnFocus = false, ZIndex = 10,
@@ -2179,7 +2167,7 @@ local function Keybind(page, parentCard, label, defaultKey, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(110, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.60,
+        BackgroundTransparency = 0.78,
         Text = current and current.Name or "None", TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -2581,7 +2569,7 @@ local function StatGrid(page, stats)
     for index, stat in ipairs(stats) do
         local card = New("Frame", {
             Parent = grid, LayoutOrder = index, BackgroundColor3 = T.SectionBG,
-            BackgroundTransparency = 0.48,
+            BackgroundTransparency = 0.72,
         })
         Corner(card, 14); Gradient(card, {function(t) return Mix(t.SectionBG, t.Accent3, .12) end, function(t) return Mix(t.SectionBG, t.Accent2, .10) end}, 20); Stroke(card, "Border", 0.18)
         local value = New("TextLabel", {
@@ -2635,7 +2623,7 @@ end
 local function HomeInfoRow(parent, labelText, valueText, accentValue)
     local row = New("Frame", {
         Parent = parent, Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.76,
     })
     Corner(row, 10)
     Gradient(row, {
@@ -2669,7 +2657,7 @@ end
 local function HomeStatCard(parent, order, titleText, valueText, accentValue)
     local card = New("Frame", {
         Parent = parent, LayoutOrder = order, BackgroundColor3 = T.SectionBG,
-        BackgroundTransparency = 0.48,
+        BackgroundTransparency = 0.72,
     })
     Corner(card, 12)
     Gradient(card, {
@@ -2703,7 +2691,7 @@ local Home = CreatePage("Home")
 do
 local welcomeCard = New("Frame", {
     Parent = Home.Body, Size = UDim2.new(1, 0, 0, 86), BackgroundColor3 = T.SectionBG,
-    BackgroundTransparency = 0.46, ClipsDescendants = true,
+    BackgroundTransparency = 0.70, ClipsDescendants = true,
 })
 Corner(welcomeCard, 15)
 Gradient(welcomeCard, {
@@ -2842,7 +2830,7 @@ end
 local function MakeFavoriteHomeRow(meta)
     local row = New("Frame", {
         Parent = __KZ_QOL.FavoritesCard, Name = "KZFavoriteRow", Size = UDim2.new(1, 0, 0, 42),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.76,
     })
     Corner(row, 10)
     local outline = Stroke(row, "Border", 0.28)
@@ -4047,11 +4035,11 @@ local function __KZ_PlayLoadAnimation()
     })
     local loaderPanel = New("Frame", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(600, 350),
+        Position = UDim2.fromScale(0.5, 0.77), Size = UDim2.fromOffset(460, 126),
         BackgroundColor3 = T.SectionBG, BackgroundTransparency = 0.92,
         BorderSizePixel = 0, ZIndex = 1002,
     })
-    Corner(loaderPanel, 24)
+    Corner(loaderPanel, 18)
     local loaderPanelStroke = Stroke(loaderPanel, "Border", 1, 1.3)
     Gradient(loaderPanel, {
         function(t) return Mix(t.SectionBG, t.Accent3, 0.12) end,
@@ -4059,31 +4047,12 @@ local function __KZ_PlayLoadAnimation()
         function(t) return Mix(t.SectionBG, t.Accent, 0.08) end,
     }, 12)
     local loaderPanelEdge = New("Frame", {
-        Parent = loaderPanel, Position = UDim2.fromOffset(20, 26),
-        Size = UDim2.fromOffset(3, 298), BackgroundColor3 = T.Accent,
+        Parent = loaderPanel, Position = UDim2.fromOffset(18, 23),
+        Size = UDim2.fromOffset(3, 80), BackgroundColor3 = T.Accent,
         BackgroundTransparency = 0.65, BorderSizePixel = 0, ZIndex = 1003,
     })
     Corner(loaderPanelEdge, 999)
     Gradient(loaderPanelEdge, {"Accent3", "Accent", "Accent2"}, 90)
-    local loaderArtwork = New("ImageLabel", {
-        Parent = loaderPanel, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromOffset(442, 175), Size = UDim2.fromOffset(248, 306),
-        BackgroundColor3 = T.MainBG, BackgroundTransparency = 0.44,
-        Image = ResolveLoaderArt() or "", ImageTransparency = 0.18,
-        ScaleType = Enum.ScaleType.Crop, BorderSizePixel = 0, ZIndex = 1003,
-    })
-    Corner(loaderArtwork, 18)
-    Stroke(loaderArtwork, "Border", 0.42, 1)
-    local loaderArtworkScale = New("UIScale", {Parent = loaderArtwork, Scale = 0.96})
-    local loaderArtworkGlint = New("Frame", {
-        Parent = loaderArtwork, Size = UDim2.new(1, 0, 0.42, 0), BackgroundColor3 = T.TextMain,
-        BackgroundTransparency = 0.9, BorderSizePixel = 0, Active = false, ZIndex = 1004,
-    })
-    Corner(loaderArtworkGlint, 18)
-    New("UIGradient", {Parent = loaderArtworkGlint, Rotation = 90, Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1),
-    })})
-
     -- UI reveal masks
     local sidebarRevealMask = New("Frame", {
         Parent = Window, Name = "SidebarRevealMask", Position = UDim2.fromOffset(0, 0),
@@ -4135,7 +4104,7 @@ local function __KZ_PlayLoadAnimation()
 
     local logoMark = New("Frame", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.40), Size = UDim2.fromOffset(230, 104),
+        Position = UDim2.fromScale(0.5, 0.43), Size = UDim2.fromOffset(230, 104),
         BackgroundTransparency = 1, ZIndex = 1002,
     })
     local logoMarkScale = New("UIScale", {Parent = logoMark, Scale = 0.86})
@@ -4172,14 +4141,14 @@ local function __KZ_PlayLoadAnimation()
 
     local subtitle = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.525), Size = UDim2.fromOffset(280, 24),
+        Position = UDim2.fromScale(0.5, 0.55), Size = UDim2.fromOffset(280, 24),
         BackgroundTransparency = 1, Text = "S C R I P T S", Font = Enum.Font.GothamMedium,
         TextSize = 11, TextColor3 = T.TextSub, TextTransparency = 1, ZIndex = 1002,
     })
 
     local loaderEyebrow = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.245), Size = UDim2.fromOffset(300, 18),
+        Position = UDim2.fromScale(0.5, 0.29), Size = UDim2.fromOffset(300, 18),
         BackgroundTransparency = 1, Text = "UNIVERSAL UI  /  THEMED SHELL",
         Font = Enum.Font.GothamMedium, TextSize = 8, TextColor3 = T.Accent3,
         TextTransparency = 1, ZIndex = 1003,
@@ -4187,21 +4156,21 @@ local function __KZ_PlayLoadAnimation()
 
     local statusLabel = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.585), Size = UDim2.fromOffset(260, 18),
+        Position = UDim2.fromScale(0.5, 0.72), Size = UDim2.fromOffset(260, 18),
         BackgroundTransparency = 1, Text = "INITIALIZING", Font = Enum.Font.GothamMedium,
         TextSize = 9, TextColor3 = T.Accent, TextTransparency = 1, ZIndex = 1002,
     })
 
     local loadingLabel = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.645), Size = UDim2.fromOffset(220, 20),
+        Position = UDim2.fromScale(0.5, 0.77), Size = UDim2.fromOffset(220, 20),
         BackgroundTransparency = 1, Text = "LOADING  0%", Font = Enum.Font.GothamSemibold,
         TextSize = 11, TextColor3 = T.TextSub, TextTransparency = 1, ZIndex = 1002,
     })
 
     local progressTrack = New("Frame", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.36, 0.695), Size = UDim2.fromOffset(230, 5),
+        Position = UDim2.fromScale(0.5, 0.82), Size = UDim2.fromOffset(230, 5),
         BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.25,
         BorderSizePixel = 0, ClipsDescendants = true, ZIndex = 1002,
     })
@@ -4238,12 +4207,9 @@ local function __KZ_PlayLoadAnimation()
         Tween(introScale, 1.05, {Scale = targetScale}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(introArtwork, 0.9, {ImageTransparency = 0.08}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         Tween(introArtworkScale, 6.5, {Scale = 1.065}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-        Tween(loaderPanel, 0.72, {BackgroundTransparency = 0.24}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        Tween(loaderPanelStroke, 0.72, {Transparency = 0.12}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        Tween(loaderPanelEdge, 0.72, {BackgroundTransparency = 0.04}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        Tween(loaderArtwork, 0.8, {ImageTransparency = 0.04, BackgroundTransparency = 0.24}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        Tween(loaderArtworkScale, 1.05, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        Tween(loaderArtworkGlint, 0.9, {BackgroundTransparency = 0.8}, Enum.EasingStyle.Sine)
+        Tween(loaderPanel, 0.72, {BackgroundTransparency = 0.66}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(loaderPanelStroke, 0.72, {Transparency = 0.3}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        Tween(loaderPanelEdge, 0.72, {BackgroundTransparency = 0.14}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         Tween(introStroke, 0.9, {Transparency = 0.16}, Enum.EasingStyle.Sine)
         task.wait(0.35)
         Tween(loaderEyebrow, 0.42, {TextTransparency = 0.08}, Enum.EasingStyle.Sine)
@@ -4270,7 +4236,7 @@ local function __KZ_PlayLoadAnimation()
         loadingLabel.TextColor3 = T.Accent
         statusLabel.Text = "ALL SYSTEMS READY"
         Tween(logoMark, 0.58, {
-            Position = UDim2.fromScale(0.36, 0.39),
+            Position = UDim2.fromScale(0.5, 0.39),
         }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(logoMarkScale, 0.58, {Scale = 0.91}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(progressGlow, 0.32, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
@@ -4291,7 +4257,7 @@ local function __KZ_PlayLoadAnimation()
             Size = UDim2.new(0, 0, 1, 0), BackgroundTransparency = 1,
         }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(logoMark, 0.52, {
-            Position = UDim2.fromScale(0.36, 0.35),
+            Position = UDim2.fromScale(0.5, 0.35),
         }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         Tween(logoMarkScale, 0.52, {Scale = 0.8}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         Tween(logoK, 0.44, {TextTransparency = 1, TextStrokeTransparency = 1}, Enum.EasingStyle.Sine)
