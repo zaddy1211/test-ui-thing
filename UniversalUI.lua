@@ -568,26 +568,42 @@ end)
 
 local __KZ_BackgroundMotion = {
     Layer = nil,
-    FrameImage = nil,
+    Objects = {},
     Generation = 0,
     Started = false,
 }
 
 function __KZ_BackgroundMotion.Style()
     if themeName == "Cherry Blossom" then
-        return {File = "kz-cherry-blossom-motion-sheet.jpg"}
+        return {
+            File = "kz-cherry-petal-256.png",
+            Count = 12, Speed = 0.010, Sway = 0.055,
+            MinSize = 13, MaxSize = 25, Opacity = 0.72,
+            Interval = 0.055,
+        }
     elseif themeName == "Hello Kitty" then
-        return {File = "kz-hello-kitty-motion-sheet.jpg"}
+        return {
+            File = "kz-heart-particle.png",
+            Count = 8, Speed = 0.007, Sway = 0.035,
+            MinSize = 17, MaxSize = 30, Opacity = 0.58,
+            Interval = 0.065,
+        }
     end
-    return {File = "kz-anime-motion-sheet.jpg"}
+    return {
+        File = "kz-falling-leaf-256.png",
+        Count = 10, Speed = 0.008, Sway = 0.065,
+        MinSize = 16, MaxSize = 28, Opacity = 0.70,
+        Interval = 0.055,
+    }
 end
 
 function __KZ_BackgroundMotion.Clear()
     __KZ_BackgroundMotion.Generation = __KZ_BackgroundMotion.Generation + 1
-    if __KZ_BackgroundMotion.FrameImage and __KZ_BackgroundMotion.FrameImage.Parent then
-        __KZ_BackgroundMotion.FrameImage:Destroy()
+    for index = #__KZ_BackgroundMotion.Objects, 1, -1 do
+        local particle = __KZ_BackgroundMotion.Objects[index]
+        if particle and particle.Node and particle.Node.Parent then particle.Node:Destroy() end
+        __KZ_BackgroundMotion.Objects[index] = nil
     end
-    __KZ_BackgroundMotion.FrameImage = nil
 end
 
 function __KZ_BackgroundMotion.Build()
@@ -599,32 +615,51 @@ function __KZ_BackgroundMotion.Build()
     if not asset then return end
 
     local generation = __KZ_BackgroundMotion.Generation
-    local frameImage = New("ImageLabel", {
-        Parent = __KZ_BackgroundMotion.Layer,
-        Size = UDim2.fromScale(1, 1),
-        Position = UDim2.fromScale(0, 0),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Image = asset,
-        ImageTransparency = 0.08,
-        ImageRectSize = Vector2.new(480, 270),
-        ImageRectOffset = Vector2.new(0, 0),
-        ScaleType = Enum.ScaleType.Stretch,
-        ZIndex = 4,
-    })
-    __KZ_BackgroundMotion.FrameImage = frameImage
+    for index = 1, style.Count do
+        local particle = New("ImageLabel", {
+            Parent = __KZ_BackgroundMotion.Layer,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Size = UDim2.fromOffset(math.random(style.MinSize, style.MaxSize), math.random(style.MinSize, style.MaxSize)),
+            Position = UDim2.fromScale(math.random(0, 100) / 100, math.random(-10, 110) / 100),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Image = asset,
+            ImageColor3 = Color3.fromRGB(255, 255, 255),
+            ImageTransparency = 1,
+            ScaleType = Enum.ScaleType.Fit,
+            ZIndex = 4,
+        })
+        table.insert(__KZ_BackgroundMotion.Objects, {
+            Node = particle,
+            X = math.random(-8, 108) / 100,
+            Y = math.random(0, 125) / 100,
+            Speed = style.Speed * math.random(78, 122) / 100,
+            Sway = style.Sway * math.random(70, 130) / 100,
+            Rotation = math.random(-35, 35),
+            Spin = math.random(-80, 80),
+        })
+    end
 
     task.spawn(function()
-        local frame = 0
         while not destroyed
             and generation == __KZ_BackgroundMotion.Generation
-            and frameImage
-            and frameImage.Parent do
-            local column = frame % 6
-            local row = math.floor(frame / 6)
-            frameImage.ImageRectOffset = Vector2.new(column * 480, row * 270)
-            frame = (frame + 1) % 16
-            task.wait(0.12)
+            and __KZ_BackgroundMotion.Layer
+            and __KZ_BackgroundMotion.Layer.Parent do
+            for _, particle in ipairs(__KZ_BackgroundMotion.Objects) do
+                local node = particle.Node
+                if node and node.Parent then
+                    particle.Y = (particle.Y + particle.Speed) % 1.25
+                    local y = particle.Y - 0.12
+                    local x = particle.X + particle.Sway * math.sin((particle.Y + particle.Rotation) * 5.2)
+                    local fadeIn = math.clamp((y + 0.08) / 0.18, 0, 1)
+                    local fadeOut = math.clamp((1.08 - y) / 0.18, 0, 1)
+                    local fade = math.min(fadeIn, fadeOut)
+                    node.Position = UDim2.fromScale(x, y)
+                    node.Rotation = particle.Rotation + particle.Spin * math.sin(particle.Y * 6)
+                    node.ImageTransparency = 1 - (style.Opacity * fade)
+                end
+            end
+            task.wait(style.Interval)
         end
     end)
 end
@@ -633,7 +668,7 @@ function __KZ_BackgroundMotion.Start()
     if __KZ_BackgroundMotion.Started then return end
     __KZ_BackgroundMotion.Started = true
 
-    if Artwork then Artwork.Visible = false end
+    if Artwork then Artwork.Visible = true end
     __KZ_BackgroundMotion.Layer = New("Frame", {
         Parent = Window,
         Name = "ThemeMotionLayer",
