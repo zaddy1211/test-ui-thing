@@ -37,7 +37,7 @@ local LOGO = LOGO_FALLBACK
 
 local ASSET_ROOT = "KZScripts/UI Library"
 local ASSET_DIR = ASSET_ROOT .. "/Assets"
-local LOGO_FILE = ASSET_DIR .. "/kz-logo-v2.png"
+local LOGO_FILE = ASSET_DIR .. "/kz-logo.png"
 
 
 local function EnsureAssetFolders()
@@ -102,7 +102,7 @@ local function SaveAndLoadLogo()
 
     if typeof(writefile) == "function" and game and game.HttpGet then
         local okDownload, body = pcall(function()
-            return game:HttpGet("https://raw.githubusercontent.com/zaddy1211/test-ui-thing/main/assets/kz-logo-v2.png")
+            return game:HttpGet("https://raw.githubusercontent.com/zaddy1211/test-ui-thing/main/assets/kz-logo.png")
         end)
         if okDownload and type(body) == "string" and #body > 64 then
             pcall(writefile, LOGO_FILE, body)
