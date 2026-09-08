@@ -231,6 +231,7 @@ local ThemeArtFiles = {
     ["Hello Kitty"] = "pastel-cat.png",
     ["Cherry Blossom"] = "cherry-blossom-dusk.png",
 }
+local LoaderArtFile = "kz-loader-night.png"
 
 -- Public GitHub asset source. Missing artwork is downloaded once and then
 -- reused from the executor cache on later launches.
@@ -255,6 +256,7 @@ local function DownloadThemeArt(fileName)
     end
     return nil
 end
+
 -- Share theme colors
 pcall(function()
     getgenv().__kzQBAccent = T.Accent
@@ -497,6 +499,20 @@ local function ResolveThemeArt(theme)
         end
     end
     return nil
+end
+
+local function ResolveLoaderArt()
+    if typeof(isfile) ~= "function" then return nil end
+    local candidates = {ASSET_DIR .. "/" .. LoaderArtFile, "KZ_UI_ThemeAssets/" .. LoaderArtFile, LoaderArtFile}
+    local downloaded = DownloadThemeArt(LoaderArtFile)
+    if downloaded then table.insert(candidates, 1, downloaded) end
+    for _, path in ipairs(candidates) do
+        if isfile(path) then
+            local ok, asset = pcall(ResolveCustomAsset, path)
+            if ok and type(asset) == "string" and asset ~= "" then return asset end
+        end
+    end
+    return ResolveThemeArt("KZ Scripts")
 end
 
 local function UpdateThemeArt(theme, animate)
@@ -1262,7 +1278,7 @@ local function Section(page, title, subtitle, widthScale)
     local card = New("Frame", {
         Parent = page.Body, Size = UDim2.new(widthScale or 1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.SectionBG,
-        BackgroundTransparency = 0.14,
+        BackgroundTransparency = 0.32,
     })
     Corner(card, 14)
     Gradient(card, {
@@ -1353,7 +1369,7 @@ end
 local function ElementBase(page, parent, label, height)
     local row = New("Frame", {
         Parent = parent, Size = UDim2.new(1, 0, 0, height or 44),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.06,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.42,
     })
     Corner(row, 10)
     Gradient(row, {
@@ -1362,6 +1378,14 @@ local function ElementBase(page, parent, label, height)
         function(t) return Mix(t.ElementBG, t.Accent2, .065) end,
     }, 0)
     local outline = Stroke(row, "Border", 0.25)
+    local rowScale = New("UIScale", {Parent = row, Scale = 1})
+    local hoverEdge = New("Frame", {
+        Parent = row, Position = UDim2.fromOffset(5, 10), Size = UDim2.fromOffset(2, (height or 44) - 20),
+        BackgroundColor3 = T.Accent, BackgroundTransparency = 0.72,
+        BorderSizePixel = 0, ZIndex = 2,
+    })
+    Corner(hoverEdge, 999)
+    Gradient(hoverEdge, {"Accent3", "Accent", "Accent2"}, 90)
     local favoriteCount = (page.FavoriteCounts[label] or 0) + 1
     page.FavoriteCounts[label] = favoriteCount
     local favoriteKey = tostring(page.Name or "Page") .. "/" .. tostring(label) .. (favoriteCount > 1 and (" #" .. tostring(favoriteCount)) or "")
@@ -1369,13 +1393,21 @@ local function ElementBase(page, parent, label, height)
     table.insert(page.Searchables, searchable)
     if __KZ_QOL.RegisterFavoriteRow then __KZ_QOL.RegisterFavoriteRow(page, label, row, searchable) end
     row.MouseEnter:Connect(function()
-        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0})
+        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.18})
+        Tween(rowScale, 0.18, {Scale = 1.008}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.12}, Enum.EasingStyle.Sine)
     end)
     row.MouseLeave:Connect(function()
-        Tween(row, 0.16, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.06})
+        Tween(row, 0.16, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.42})
+        Tween(rowScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.72}, Enum.EasingStyle.Sine)
     end)
     BindTheme(function()
-        if row.Parent then row.BackgroundColor3 = T.ElementBG; outline.Color = T.Border end
+        if row.Parent then
+            row.BackgroundColor3 = T.ElementBG
+            outline.Color = T.Border
+            hoverEdge.BackgroundColor3 = T.Accent
+        end
     end)
     return row
 end
@@ -1787,6 +1819,7 @@ local function Dropdown(page, parentCard, label, options, default, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(132, 28), BackgroundColor3 = T.ControlBG,
+        BackgroundTransparency = 0.30,
         Text = selected, TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -1897,7 +1930,7 @@ local function Button(page, parentCard, label, emphasized, action)
     local row = New("Frame", {
         Parent = parentCard, Size = UDim2.new(1, 0, 0, 42),
         BackgroundColor3 = emphasized and T.Accent or T.ElementBG,
-        BackgroundTransparency = emphasized and 0.08 or 0.06,
+        BackgroundTransparency = emphasized and 0.24 or 0.42,
     })
     Corner(row, 10)
 
@@ -1909,6 +1942,15 @@ local function Button(page, parentCard, label, emphasized, action)
         }, 0)
     end
     local outline = Stroke(row, "Border", 0.32)
+    local buttonScale = New("UIScale", {Parent = row, Scale = 1})
+    local buttonEdge = New("Frame", {
+        Parent = row, Position = UDim2.fromOffset(5, 9), Size = UDim2.fromOffset(2, 24),
+        BackgroundColor3 = emphasized and T.TextMain or T.Accent,
+        BackgroundTransparency = emphasized and 0.4 or 0.72,
+        BorderSizePixel = 0, ZIndex = 2,
+    })
+    Corner(buttonEdge, 999)
+    Gradient(buttonEdge, {"Accent3", "Accent", "Accent2"}, 90)
     local favoriteCount = (page.FavoriteCounts[label] or 0) + 1
     page.FavoriteCounts[label] = favoriteCount
     local favoriteKey = tostring(page.Name or "Page") .. "/" .. tostring(label) .. (favoriteCount > 1 and (" #" .. tostring(favoriteCount)) or "")
@@ -1937,23 +1979,31 @@ local function Button(page, parentCard, label, emphasized, action)
         Parent = row, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
         Text = "", AutoButtonColor = false, ZIndex = 4,
     })
-    click.MouseButton1Down:Connect(function() Tween(row, 0.08, {Size = UDim2.new(1, -4, 0, 40), Position = UDim2.fromOffset(2, 1)}) end)
-    click.MouseButton1Up:Connect(function() Tween(row, 0.14, {Size = UDim2.new(1, 0, 0, 42), Position = UDim2.new()}) end)
+    click.MouseButton1Down:Connect(function()
+        Tween(buttonScale, 0.08, {Scale = 0.975}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    end)
+    click.MouseButton1Up:Connect(function()
+        Tween(buttonScale, 0.18, {Scale = 1.008}, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    end)
     click.MouseButton1Click:Connect(function()
         if action then action() else Toast("UI Preview", label .. " is visual-only in this mockup.") end
     end)
     row.MouseEnter:Connect(function()
+        Tween(buttonScale, 0.18, {Scale = 1.008}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(buttonEdge, 0.18, {BackgroundTransparency = emphasized and 0.1 or 0.12}, Enum.EasingStyle.Sine)
         if emphasized then
-            Tween(row, 0.16, {BackgroundColor3 = getAccentHover(), BackgroundTransparency = 0})
+            Tween(row, 0.16, {BackgroundColor3 = getAccentHover(), BackgroundTransparency = 0.10})
         else
-            Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0})
+            Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.18})
         end
     end)
     row.MouseLeave:Connect(function()
+        Tween(buttonScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(buttonEdge, 0.18, {BackgroundTransparency = emphasized and 0.4 or 0.72}, Enum.EasingStyle.Sine)
         if emphasized then
-            Tween(row, 0.16, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.08})
+            Tween(row, 0.16, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.24})
         else
-            Tween(row, 0.16, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.06})
+            Tween(row, 0.16, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.42})
         end
     end)
     BindTheme(function()
@@ -1965,6 +2015,7 @@ local function Button(page, parentCard, label, emphasized, action)
                 row.BackgroundColor3 = T.ElementBG
                 text.TextColor3 = T.TextMain
             end
+            buttonEdge.BackgroundColor3 = emphasized and T.TextMain or T.Accent
             outline.Color = T.Border
         end
     end)
@@ -1980,6 +2031,7 @@ local function Textbox(page, parentCard, label, placeholder, default, onChanged)
     local box = New("TextBox", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(150, 28), BackgroundColor3 = T.ControlBG,
+        BackgroundTransparency = 0.30,
         Text = tostring(default or ""), PlaceholderText = placeholder or "Enter text...",
         PlaceholderColor3 = T.TextSub, TextColor3 = T.TextMain, Font = Enum.Font.Gotham,
         TextSize = 10, ClearTextOnFocus = false, ZIndex = 10,
@@ -2029,6 +2081,7 @@ local function Keybind(page, parentCard, label, defaultKey, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(110, 28), BackgroundColor3 = T.ControlBG,
+        BackgroundTransparency = 0.30,
         Text = current and current.Name or "None", TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -3657,6 +3710,10 @@ __KZ_UpdateResponsiveScale()
 
 -- Animated background
 local function __KZ_CreateAmbientLayer(host, baseZ, intensity, trackForWindow)
+    -- Legacy compatibility shim. The old geometric layer is intentionally
+    -- disabled so no caller can recreate the distracting moving shapes.
+    return nil
+
     local layer = New("Frame", {
         Parent = host, Name = "KZAmbient", Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -3835,7 +3892,7 @@ local function __KZ_CreateAmbientLayer(host, baseZ, intensity, trackForWindow)
     return layer
 end
 
-__KZ_CreateAmbientLayer(Window, 2, 1.25, true)
+-- Geometric ambient layer removed; theme artwork is the only background.
 
 -- Default pages
 __KZ_AddNav("Home", ICONS.Home, 1)
@@ -3877,7 +3934,36 @@ local function __KZ_PlayLoadAnimation()
         function(t) return Mix(t.MainBG, t.Accent2, 0.2) end,
     }, 20)
     backdropGradient.Offset = Vector2.new(-0.18, -0.06)
-    __KZ_CreateAmbientLayer(Intro, 1001, 0.9, false)
+    local introArtwork = New("ImageLabel", {
+        Parent = Intro, Size = UDim2.new(1, 30, 1, 30), Position = UDim2.fromOffset(-15, -15),
+        BackgroundTransparency = 1, Image = ResolveLoaderArt() or "",
+        ImageTransparency = 0.08, ScaleType = Enum.ScaleType.Crop, ZIndex = 1001,
+    })
+    local introArtworkScale = New("UIScale", {Parent = introArtwork, Scale = 1.045})
+    local introArtworkShade = New("Frame", {
+        Parent = Intro, Size = UDim2.fromScale(1, 1), BackgroundColor3 = T.MainBG,
+        BackgroundTransparency = 0.62, BorderSizePixel = 0, ZIndex = 1001,
+    })
+    local loaderPanel = New("Frame", {
+        Parent = Intro, AnchorPoint = Vector2.new(0, 0.5),
+        Position = UDim2.fromScale(0.07, 0.5), Size = UDim2.fromOffset(390, 286),
+        BackgroundColor3 = T.SectionBG, BackgroundTransparency = 0.92,
+        BorderSizePixel = 0, ZIndex = 1002,
+    })
+    Corner(loaderPanel, 22)
+    local loaderPanelStroke = Stroke(loaderPanel, "Border", 1, 1.1)
+    Gradient(loaderPanel, {
+        function(t) return Mix(t.SectionBG, t.Accent3, 0.12) end,
+        function(t) return Mix(t.SectionBG, t.MainBG, 0.08) end,
+        function(t) return Mix(t.SectionBG, t.Accent, 0.08) end,
+    }, 12)
+    local loaderPanelEdge = New("Frame", {
+        Parent = loaderPanel, Position = UDim2.fromOffset(18, 26),
+        Size = UDim2.fromOffset(3, 232), BackgroundColor3 = T.Accent,
+        BackgroundTransparency = 0.65, BorderSizePixel = 0, ZIndex = 1003,
+    })
+    Corner(loaderPanelEdge, 999)
+    Gradient(loaderPanelEdge, {"Accent3", "Accent", "Accent2"}, 90)
 
     -- UI reveal masks
     local sidebarRevealMask = New("Frame", {
@@ -3930,7 +4016,7 @@ local function __KZ_PlayLoadAnimation()
 
     local logoMark = New("Frame", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.43), Size = UDim2.fromOffset(230, 104),
+        Position = UDim2.fromScale(0.28, 0.40), Size = UDim2.fromOffset(230, 104),
         BackgroundTransparency = 1, ZIndex = 1002,
     })
     local logoMarkScale = New("UIScale", {Parent = logoMark, Scale = 0.86})
@@ -3967,28 +4053,36 @@ local function __KZ_PlayLoadAnimation()
 
     local subtitle = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.555), Size = UDim2.fromOffset(280, 24),
+        Position = UDim2.fromScale(0.28, 0.525), Size = UDim2.fromOffset(280, 24),
         BackgroundTransparency = 1, Text = "S C R I P T S", Font = Enum.Font.GothamMedium,
         TextSize = 11, TextColor3 = T.TextSub, TextTransparency = 1, ZIndex = 1002,
     })
 
+    local loaderEyebrow = New("TextLabel", {
+        Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.28, 0.245), Size = UDim2.fromOffset(300, 18),
+        BackgroundTransparency = 1, Text = "UNIVERSAL UI  /  THEMED SHELL",
+        Font = Enum.Font.GothamMedium, TextSize = 8, TextColor3 = T.Accent3,
+        TextTransparency = 1, ZIndex = 1003,
+    })
+
     local statusLabel = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.61), Size = UDim2.fromOffset(260, 18),
+        Position = UDim2.fromScale(0.28, 0.585), Size = UDim2.fromOffset(260, 18),
         BackgroundTransparency = 1, Text = "INITIALIZING", Font = Enum.Font.GothamMedium,
         TextSize = 9, TextColor3 = T.Accent, TextTransparency = 1, ZIndex = 1002,
     })
 
     local loadingLabel = New("TextLabel", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.655), Size = UDim2.fromOffset(220, 20),
+        Position = UDim2.fromScale(0.28, 0.645), Size = UDim2.fromOffset(220, 20),
         BackgroundTransparency = 1, Text = "LOADING  0%", Font = Enum.Font.GothamSemibold,
         TextSize = 11, TextColor3 = T.TextSub, TextTransparency = 1, ZIndex = 1002,
     })
 
     local progressTrack = New("Frame", {
         Parent = Intro, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.fromScale(0.5, 0.7), Size = UDim2.fromOffset(230, 5),
+        Position = UDim2.fromScale(0.28, 0.695), Size = UDim2.fromOffset(230, 5),
         BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.25,
         BorderSizePixel = 0, ClipsDescendants = true, ZIndex = 1002,
     })
@@ -4023,9 +4117,14 @@ local function __KZ_PlayLoadAnimation()
     task.spawn(function()
         Tween(Intro, 0.72, {GroupTransparency = 0}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         Tween(introScale, 1.05, {Scale = targetScale}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(introArtwork, 0.9, {ImageTransparency = 0.04}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        Tween(introArtworkScale, 6.5, {Scale = 1.075}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        Tween(loaderPanel, 0.72, {BackgroundTransparency = 0.2}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(loaderPanelStroke, 0.72, {Transparency = 0.2}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        Tween(loaderPanelEdge, 0.72, {BackgroundTransparency = 0.12}, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         Tween(introStroke, 0.9, {Transparency = 0.16}, Enum.EasingStyle.Sine)
-        Tween(backdropGradient, 4.2, {Offset = Vector2.new(0.18, 0.06)}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         task.wait(0.35)
+        Tween(loaderEyebrow, 0.42, {TextTransparency = 0.08}, Enum.EasingStyle.Sine)
         Tween(logoK, 0.62, {TextTransparency = 0, TextStrokeTransparency = 0.82}, Enum.EasingStyle.Sine)
         Tween(logoZ, 0.72, {TextTransparency = 0, TextStrokeTransparency = 0.82}, Enum.EasingStyle.Sine)
         Tween(logoSlash, 0.58, {BackgroundTransparency = 0.04}, Enum.EasingStyle.Sine)
@@ -4049,7 +4148,7 @@ local function __KZ_PlayLoadAnimation()
         loadingLabel.TextColor3 = T.Accent
         statusLabel.Text = "ALL SYSTEMS READY"
         Tween(logoMark, 0.58, {
-            Position = UDim2.fromScale(0.5, 0.39),
+            Position = UDim2.fromScale(0.28, 0.39),
         }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(logoMarkScale, 0.58, {Scale = 0.91}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(progressGlow, 0.32, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
@@ -4070,13 +4169,14 @@ local function __KZ_PlayLoadAnimation()
             Size = UDim2.new(0, 0, 1, 0), BackgroundTransparency = 1,
         }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(logoMark, 0.52, {
-            Position = UDim2.fromScale(0.5, 0.35),
+            Position = UDim2.fromScale(0.28, 0.35),
         }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         Tween(logoMarkScale, 0.52, {Scale = 0.8}, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         Tween(logoK, 0.44, {TextTransparency = 1, TextStrokeTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(logoZ, 0.44, {TextTransparency = 1, TextStrokeTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(logoSlash, 0.38, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(logoUnderline, 0.38, {BackgroundTransparency = 1, Size = UDim2.fromOffset(36, 2)}, Enum.EasingStyle.Sine)
+        Tween(loaderEyebrow, 0.38, {TextTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(subtitle, 0.42, {TextTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(statusLabel, 0.38, {TextTransparency = 1}, Enum.EasingStyle.Sine)
         Tween(loadingLabel, 0.38, {TextTransparency = 1}, Enum.EasingStyle.Sine)
