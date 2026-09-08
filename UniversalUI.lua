@@ -4238,7 +4238,9 @@ function LyraZen:Unload() return KZAdapter:Unload() end
 function LyraZen.new(config) return KZAdapter.new(config) end
 LyraZen.ProtectGui = KZAdapter.ProtectGui
 
-local __KZ_UI_API = {
+-- Keep the final API on an existing table so this large one-file UI stays
+-- below Luau's 200-local-register compilation limit.
+KZAdapter.__KZ_UI_API = {
     Version = "FootballFusionShell-Universal-1.0",
     Window = __KZ_Window, WindowGui = Window, Screen = Screen,
     Theme = T, Themes = Themes, ThemeName = function() return themeName end,
@@ -4269,6 +4271,6 @@ local __KZ_UI_API = {
     GetCursor = function() return currentCursor end,
     IsDestroyed = function() return destroyed end,
 }
-__KZ_UI_API.CreateWindow = function(_) return __KZ_Window end
-return __KZ_UI_API
+KZAdapter.__KZ_UI_API.CreateWindow = function(_) return __KZ_Window end
+return KZAdapter.__KZ_UI_API
 end
