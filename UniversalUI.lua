@@ -1,5 +1,3 @@
--- Universal UI
-
 local __KZ_UI_ENV = (getgenv and getgenv()) or _G
 local __KZ_UI_OPTIONS = (__KZ_UI_ENV and __KZ_UI_ENV.__KZ_UI_OPTIONS) or {}
 if __KZ_UI_ENV then __KZ_UI_ENV.__KZ_UI_OPTIONS = nil end
