@@ -4458,7 +4458,7 @@ end
 __KZ_PlayLoadAnimation()
 
 -- Legacy support
-local KZAdapter = {}
+KZAdapter = {}
 KZAdapter.Version = "Universal Football Fusion UI"
 KZAdapter.Theme = {Hightlight = T.Accent, Accent = T.Accent}
 BindTheme(function() KZAdapter.Theme.Hightlight = T.Accent; KZAdapter.Theme.Accent = T.Accent end)
@@ -4485,7 +4485,7 @@ KZAdapter.ProtectGui = function(first, second)
     pcall(function() if protect_gui then protect_gui(gui) elseif protectgui then protectgui(gui) elseif syn and syn.protect_gui then syn.protect_gui(gui) end end)
 end
 
-local LyraZen = {}
+LyraZen = {}
 LyraZen.Version = "Universal Football Fusion UI"
 LyraZen.Theme = T
 function LyraZen:Track(connection) return KZAdapter:Track(connection) end
