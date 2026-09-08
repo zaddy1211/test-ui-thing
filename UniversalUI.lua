@@ -3710,10 +3710,9 @@ __KZ_UpdateResponsiveScale()
 
 -- Animated background
 local function __KZ_CreateAmbientLayer(host, baseZ, intensity, trackForWindow)
-    -- Legacy compatibility shim. The old geometric layer is intentionally
-    -- disabled so no caller can recreate the distracting moving shapes.
-    return nil
-
+    -- Kept as a harmless compatibility hook for integrations that may call it.
+    -- Theme artwork is now the sole decorative background.
+    --[[ Legacy geometric animation implementation intentionally retired.
     local layer = New("Frame", {
         Parent = host, Name = "KZAmbient", Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -3890,6 +3889,7 @@ local function __KZ_CreateAmbientLayer(host, baseZ, intensity, trackForWindow)
     end
 
     return layer
+    ]]
 end
 
 -- Geometric ambient layer removed; theme artwork is the only background.
