@@ -476,17 +476,17 @@ end)
 local Artwork = New("ImageLabel", {
     Parent = Window, Name = "ThemeArtwork", Size = UDim2.new(1, 42, 1, 42),
     Position = UDim2.fromOffset(-21, -21), BackgroundTransparency = 1,
-    ImageTransparency = 0.62, ScaleType = Enum.ScaleType.Crop,
+    ImageTransparency = 0.35, ScaleType = Enum.ScaleType.Crop,
     ImageColor3 = Color3.fromRGB(255, 255, 255), ZIndex = 1,
 })
 local ArtworkShade = New("Frame", {
     Parent = Window, Name = "ArtworkShade", Size = UDim2.fromScale(1, 1),
-    BackgroundColor3 = T.MainBG, BackgroundTransparency = 0.28,
+    BackgroundColor3 = T.MainBG, BackgroundTransparency = 0.52,
     BorderSizePixel = 0, ZIndex = 2,
 })
 local ArtworkVignette = New("Frame", {
     Parent = Window, Name = "ArtworkVignette", Size = UDim2.fromScale(1, 1),
-    BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.82,
+    BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.9,
     BorderSizePixel = 0, ZIndex = 3,
 })
 
@@ -562,7 +562,7 @@ local MARGIN = 12
 
 local Sidebar = New("Frame", {
     Parent = Window, Name = "Sidebar", Size = UDim2.new(0, SIDEBAR_COMPACT, 1, 0),
-    BackgroundColor3 = T.SidebarBG, BackgroundTransparency = 0.1,
+    BackgroundColor3 = T.SidebarBG, BackgroundTransparency = 0.38,
     BorderSizePixel = 0, ZIndex = 20, ClipsDescendants = true,
 })
 
@@ -670,7 +670,7 @@ local SideFooter = New("Frame", {
 })
 local Profile = New("Frame", {
     Parent = SideFooter, Position = UDim2.fromOffset(10, 8), Size = UDim2.new(1, -20, 0, 50),
-    BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.25, ZIndex = 23,
+    BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.5, ZIndex = 23,
 })
 Corner(Profile, 12)
 Gradient(Profile, {function(t) return Mix(t.ElementBG, t.Accent3, .13) end, function(t) return Mix(t.ElementBG, t.Accent2, .10) end}, 15)
@@ -742,7 +742,7 @@ local Breadcrumb = New("TextLabel", {
 local SearchBox = New("Frame", {
     Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -104, 0.5, 0),
     Size = UDim2.fromOffset(210, 36), BackgroundColor3 = T.ControlBG,
-    BackgroundTransparency = 0.12, ZIndex = 12,
+    BackgroundTransparency = 0.52, ZIndex = 12,
 })
 Corner(SearchBox, 11)
 Gradient(SearchBox, {function(t) return Mix(t.ControlBG, t.Accent3, .12) end, function(t) return Mix(t.ControlBG, t.Accent2, .10) end}, 0)
@@ -762,7 +762,7 @@ local function IconButton(icon, xOffset)
     local button = New("ImageButton", {
         Parent = Topbar, AnchorPoint = Vector2.new(1, 0.5),
         Position = UDim2.new(1, xOffset, 0.5, 0), Size = UDim2.fromOffset(32, 32),
-        BackgroundColor3 = T.ControlBG, BackgroundTransparency = 0.18,
+        BackgroundColor3 = T.ControlBG, BackgroundTransparency = 0.44,
         Image = icon, ImageColor3 = T.TextSub, AutoButtonColor = false, ZIndex = 12,
     })
     Corner(button, 10)
@@ -770,7 +770,7 @@ local function IconButton(icon, xOffset)
         Tween(button, 0.16, {BackgroundTransparency = 0, ImageColor3 = T.TextMain})
     end)
     button.MouseLeave:Connect(function()
-        Tween(button, 0.16, {BackgroundTransparency = 0.18, ImageColor3 = T.TextSub})
+        Tween(button, 0.16, {BackgroundTransparency = 0.44, ImageColor3 = T.TextSub})
     end)
     return button
 end
@@ -1286,7 +1286,7 @@ end
 -- artwork remains visible instead of being hidden behind opaque rectangles.
 __KZ_QOL.ApplyGlassControl = function(control, radius)
     if not control or not control.Parent then return end
-    control.BackgroundTransparency = 0.44
+    control.BackgroundTransparency = 0.60
     control.ClipsDescendants = true
     local controlScale = New("UIScale", {Parent = control, Scale = 1})
     local glint = New("Frame", {
@@ -1308,7 +1308,7 @@ __KZ_QOL.ApplyGlassControl = function(control, radius)
         Tween(glint, 0.16, {BackgroundTransparency = 0.78}, Enum.EasingStyle.Sine)
     end)
     control.MouseLeave:Connect(function()
-        Tween(control, 0.18, {BackgroundTransparency = 0.44}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(control, 0.18, {BackgroundTransparency = 0.60}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(controlScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(glint, 0.18, {BackgroundTransparency = 0.91}, Enum.EasingStyle.Sine)
     end)
@@ -1329,18 +1329,11 @@ local function Section(page, title, subtitle, widthScale)
     local card = New("Frame", {
         Parent = page.Body, Size = UDim2.new(widthScale or 1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.SectionBG,
-        BackgroundTransparency = 0.32,
+        BackgroundTransparency = 0.52,
     })
     Corner(card, 14)
     local cardScale = New("UIScale", {Parent = card, Scale = 1})
-    local cardGlint = New("Frame", {
-        Parent = card, Size = UDim2.new(1, -2, 0.34, 0), Position = UDim2.fromOffset(1, 1),
-        BackgroundColor3 = T.TextMain, BackgroundTransparency = 0.94, BorderSizePixel = 0, Active = false,
-    })
-    Corner(cardGlint, 13)
-    New("UIGradient", {Parent = cardGlint, Rotation = 90, Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1),
-    })})
+    local cardGlint
     Gradient(card, {
         function(t) return Mix(t.SectionBG, t.Accent3, 0.10) end,
         "SectionBG",
@@ -1358,18 +1351,26 @@ local function Section(page, title, subtitle, widthScale)
     })
     New("UIListLayout", {Parent = card, Padding = UDim.new(0, 9), SortOrder = Enum.SortOrder.LayoutOrder})
     card.MouseEnter:Connect(function()
-        Tween(card, 0.18, {BackgroundTransparency = 0.25}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(card, 0.18, {BackgroundTransparency = 0.34}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(cardScale, 0.18, {Scale = 1.006}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        Tween(cardGlint, 0.18, {BackgroundTransparency = 0.86}, Enum.EasingStyle.Sine)
+        if cardGlint then Tween(cardGlint, 0.18, {BackgroundTransparency = 0.86}, Enum.EasingStyle.Sine) end
     end)
     card.MouseLeave:Connect(function()
-        Tween(card, 0.2, {BackgroundTransparency = 0.32}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        Tween(card, 0.2, {BackgroundTransparency = 0.52}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(cardScale, 0.2, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        Tween(cardGlint, 0.2, {BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine)
+        if cardGlint then Tween(cardGlint, 0.2, {BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine) end
     end)
     local heading = New("Frame", {
         Parent = card, Size = UDim2.new(1, 0, 0, subtitle and 42 or 25), BackgroundTransparency = 1,
     })
+    cardGlint = New("Frame", {
+        Parent = heading, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = T.TextMain,
+        BackgroundTransparency = 0.94, BorderSizePixel = 0, Active = false,
+    })
+    Corner(cardGlint, 13)
+    New("UIGradient", {Parent = cardGlint, Rotation = 90, Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1),
+    })})
     local accent = New("Frame", {
         Parent = heading, Position = UDim2.fromOffset(0, 2), Size = UDim2.fromOffset(3, 18),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0,
@@ -1440,7 +1441,7 @@ end
 local function ElementBase(page, parent, label, height)
     local row = New("Frame", {
         Parent = parent, Size = UDim2.new(1, 0, 0, height or 44),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.48,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
     })
     Corner(row, 10)
     local rowGlint = New("Frame", {
@@ -1472,13 +1473,13 @@ local function ElementBase(page, parent, label, height)
     table.insert(page.Searchables, searchable)
     if __KZ_QOL.RegisterFavoriteRow then __KZ_QOL.RegisterFavoriteRow(page, label, row, searchable) end
     row.MouseEnter:Connect(function()
-        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.14})
+        Tween(row, 0.16, {BackgroundColor3 = T.ElementHoverBG, BackgroundTransparency = 0.18})
         Tween(rowScale, 0.18, {Scale = 1.016}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.03}, Enum.EasingStyle.Sine)
         Tween(rowGlint, 0.18, {BackgroundTransparency = 0.78}, Enum.EasingStyle.Sine)
     end)
     row.MouseLeave:Connect(function()
-        Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.48})
+        Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58})
         Tween(rowScale, 0.18, {Scale = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         Tween(hoverEdge, 0.18, {BackgroundTransparency = 0.72}, Enum.EasingStyle.Sine)
         Tween(rowGlint, 0.18, {BackgroundTransparency = 0.94}, Enum.EasingStyle.Sine)
@@ -1616,7 +1617,7 @@ local function Slider(page, parentCard, label, min, max, value, suffix, onChange
     local valueText = New("TextBox", {
         Parent = row, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 5),
         Size = UDim2.fromOffset(82, 23), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.44, BorderSizePixel = 0,
+        BackgroundTransparency = 0.60, BorderSizePixel = 0,
         Text = FormatNumber(current) .. (suffix or ""), Font = Enum.Font.GothamSemibold,
         TextSize = 10, TextColor3 = T.Accent, TextXAlignment = Enum.TextXAlignment.Center,
         ClearTextOnFocus = false, MultiLine = false, ZIndex = 5,
@@ -1902,7 +1903,7 @@ local function Dropdown(page, parentCard, label, options, default, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(132, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.44,
+        BackgroundTransparency = 0.60,
         Text = selected, TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -2014,7 +2015,7 @@ local function Button(page, parentCard, label, emphasized, action)
     local row = New("Frame", {
         Parent = parentCard, Size = UDim2.new(1, 0, 0, 42),
         BackgroundColor3 = emphasized and T.Accent or T.ElementBG,
-        BackgroundTransparency = emphasized and 0.16 or 0.48,
+        BackgroundTransparency = emphasized and 0.22 or 0.55,
     })
     Corner(row, 10)
     local buttonGlint = New("Frame", {
@@ -2096,9 +2097,9 @@ local function Button(page, parentCard, label, emphasized, action)
         Tween(buttonEdge, 0.18, {BackgroundTransparency = emphasized and 0.4 or 0.72}, Enum.EasingStyle.Sine)
         Tween(buttonGlint, 0.18, {BackgroundTransparency = 0.92}, Enum.EasingStyle.Sine)
         if emphasized then
-            Tween(row, 0.18, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.16})
+            Tween(row, 0.18, {BackgroundColor3 = T.Accent, BackgroundTransparency = 0.22})
         else
-            Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.48})
+            Tween(row, 0.18, {BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.55})
         end
     end)
     BindTheme(function()
@@ -2127,7 +2128,7 @@ local function Textbox(page, parentCard, label, placeholder, default, onChanged)
     local box = New("TextBox", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(150, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.44,
+        BackgroundTransparency = 0.60,
         Text = tostring(default or ""), PlaceholderText = placeholder or "Enter text...",
         PlaceholderColor3 = T.TextSub, TextColor3 = T.TextMain, Font = Enum.Font.Gotham,
         TextSize = 10, ClearTextOnFocus = false, ZIndex = 10,
@@ -2178,7 +2179,7 @@ local function Keybind(page, parentCard, label, defaultKey, onChanged)
     local box = New("TextButton", {
         Parent = row, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0),
         Size = UDim2.fromOffset(110, 28), BackgroundColor3 = T.ControlBG,
-        BackgroundTransparency = 0.44,
+        BackgroundTransparency = 0.60,
         Text = current and current.Name or "None", TextColor3 = T.Accent, Font = Enum.Font.GothamMedium,
         TextSize = 10, AutoButtonColor = false, ZIndex = 10,
     })
@@ -2580,7 +2581,7 @@ local function StatGrid(page, stats)
     for index, stat in ipairs(stats) do
         local card = New("Frame", {
             Parent = grid, LayoutOrder = index, BackgroundColor3 = T.SectionBG,
-            BackgroundTransparency = 0.07,
+            BackgroundTransparency = 0.48,
         })
         Corner(card, 14); Gradient(card, {function(t) return Mix(t.SectionBG, t.Accent3, .12) end, function(t) return Mix(t.SectionBG, t.Accent2, .10) end}, 20); Stroke(card, "Border", 0.18)
         local value = New("TextLabel", {
@@ -2634,7 +2635,7 @@ end
 local function HomeInfoRow(parent, labelText, valueText, accentValue)
     local row = New("Frame", {
         Parent = parent, Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.03,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
     })
     Corner(row, 10)
     Gradient(row, {
@@ -2668,7 +2669,7 @@ end
 local function HomeStatCard(parent, order, titleText, valueText, accentValue)
     local card = New("Frame", {
         Parent = parent, LayoutOrder = order, BackgroundColor3 = T.SectionBG,
-        BackgroundTransparency = 0.14,
+        BackgroundTransparency = 0.48,
     })
     Corner(card, 12)
     Gradient(card, {
@@ -2702,7 +2703,7 @@ local Home = CreatePage("Home")
 do
 local welcomeCard = New("Frame", {
     Parent = Home.Body, Size = UDim2.new(1, 0, 0, 86), BackgroundColor3 = T.SectionBG,
-    BackgroundTransparency = 0.08, ClipsDescendants = true,
+    BackgroundTransparency = 0.46, ClipsDescendants = true,
 })
 Corner(welcomeCard, 15)
 Gradient(welcomeCard, {
@@ -2841,7 +2842,7 @@ end
 local function MakeFavoriteHomeRow(meta)
     local row = New("Frame", {
         Parent = __KZ_QOL.FavoritesCard, Name = "KZFavoriteRow", Size = UDim2.new(1, 0, 0, 42),
-        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.06,
+        BackgroundColor3 = T.ElementBG, BackgroundTransparency = 0.58,
     })
     Corner(row, 10)
     local outline = Stroke(row, "Border", 0.28)
