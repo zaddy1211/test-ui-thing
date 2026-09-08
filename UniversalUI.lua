@@ -575,11 +575,11 @@ local __KZ_BackgroundMotion = {
 
 function __KZ_BackgroundMotion.Style()
     if themeName == "Cherry Blossom" then
-        return {File = "kz-cherry-blossom-motion-sheet.png"}
+        return {File = "kz-cherry-blossom-motion-sheet.jpg"}
     elseif themeName == "Hello Kitty" then
-        return {File = "kz-hello-kitty-motion-sheet.png"}
+        return {File = "kz-hello-kitty-motion-sheet.jpg"}
     end
-    return {File = "kz-anime-motion-sheet.png"}
+    return {File = "kz-anime-motion-sheet.jpg"}
 end
 
 function __KZ_BackgroundMotion.Clear()
@@ -607,7 +607,7 @@ function __KZ_BackgroundMotion.Build()
         BorderSizePixel = 0,
         Image = asset,
         ImageTransparency = 0.08,
-        ImageRectSize = Vector2.new(640, 360),
+        ImageRectSize = Vector2.new(480, 270),
         ImageRectOffset = Vector2.new(0, 0),
         ScaleType = Enum.ScaleType.Stretch,
         ZIndex = 4,
@@ -622,9 +622,9 @@ function __KZ_BackgroundMotion.Build()
             and frameImage.Parent do
             local column = frame % 6
             local row = math.floor(frame / 6)
-            frameImage.ImageRectOffset = Vector2.new(column * 640, row * 360)
-            frame = (frame + 1) % 24
-            task.wait(0.10)
+            frameImage.ImageRectOffset = Vector2.new(column * 480, row * 270)
+            frame = (frame + 1) % 16
+            task.wait(0.12)
         end
     end)
 end
