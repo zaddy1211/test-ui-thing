@@ -675,9 +675,9 @@ local function CloseLoader()
 end
 
 local function DownloadScript(url)
-	local request = (syn and syn.request) or http_request or request
-	if type(request) == "function" then
-		local response = request({Url = url, Method = "GET"})
+	local httpRequest = (syn and syn.request) or http_request or _G.request
+	if type(httpRequest) == "function" then
+		local response = httpRequest({Url = url, Method = "GET"})
 		local statusCode = tonumber(response and (response.StatusCode or response.Status))
 		if statusCode and statusCode ~= 200 then error("HTTP " .. tostring(statusCode)) end
 		local body = response and (response.Body or response.body)
@@ -829,16 +829,17 @@ local function CreateGameCard(g, index)
 	-- Name + description
 	New("TextLabel", {
 		Parent = card, Position = UDim2.fromOffset(76, 17),
-		Size = UDim2.new(1, -128, 0, 20),
+		Size = UDim2.new(1, -160, 0, 20),
 		BackgroundTransparency = 1, Text = g.Name,
 		Font = Enum.Font.GothamBold, TextSize = 14,
 		TextColor3 = T.TextMain, TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 		ZIndex = 7,
 	})
 
 	New("TextLabel", {
 		Parent = card, Position = UDim2.fromOffset(76, 42),
-		Size = UDim2.new(1, -126, 0, 18),
+		Size = UDim2.new(1, -160, 0, 18),
 		BackgroundTransparency = 1, Text = g.Description,
 		Font = Enum.Font.Gotham, TextSize = 10,
 		TextColor3 = T.TextSub, TextXAlignment = Enum.TextXAlignment.Left,
