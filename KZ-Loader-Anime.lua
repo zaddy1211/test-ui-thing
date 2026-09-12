@@ -306,7 +306,7 @@ local Screen = New("ScreenGui", {
 -- ═══════════════════════════════════════════════════════════════════
 local HEADER_H = 76
 local CARDS_TOP = HEADER_H + 44
-local CARD_H, CARD_GAP = 82, 10
+local CARD_H, CARD_GAP = MOBILE_LAYOUT and 88 or 82, 10
 local FOOTER_H = 50
 local initialCamera = workspace.CurrentCamera
 local initialViewport = initialCamera and initialCamera.ViewportSize or Vector2.new(1280, 720)
@@ -366,6 +366,7 @@ task.spawn(function()
 	if art and AnimeBackdrop.Parent then
 		AnimeBackdrop.Image = art
 		Tween(AnimeBackdrop, 0.7, {ImageTransparency = 0.28})
+		AnimeBackdrop:SetAttribute("KZArtReady", true)
 	end
 end)
 
@@ -390,6 +391,15 @@ local function AnimateAmbient(object, duration, first, second)
 		ambientTweens[object] = nil
 	end)
 end
+
+task.spawn(function()
+	while Screen.Parent and not AnimeBackdrop:GetAttribute("KZArtReady") do task.wait(0.1) end
+	if Screen.Parent and AnimeBackdrop.Image ~= "" then
+		AnimateAmbient(AnimeBackdrop, MOBILE_LAYOUT and 24 or 18,
+			{Position = UDim2.fromScale(-0.04, -0.04)},
+			{Position = UDim2.fromScale(-0.08, -0.06)})
+	end
+end)
 
 AnimateAmbient(bgGradient, 14, {Offset = Vector2.new(-0.18, -0.06)}, {Offset = Vector2.new(0.18, 0.06)})
 
@@ -514,7 +524,7 @@ local Subtitle = New("TextLabel", {
 	Parent = Header, Position = UDim2.fromOffset(84, 40),
 	Size = UDim2.new(1, -210, 0, 15),
 	BackgroundTransparency = 1,
-	Text = RecommendedGame and ("CURRENT GAME  •  " .. string.upper(RecommendedGame.Name)) or ("SCRIPT LIBRARY  •  " .. AvailableCount .. " AVAILABLE"),
+	Text = RecommendedGame and ("DETECTED  •  " .. string.upper(RecommendedGame.Name)) or ("SCRIPT LIBRARY  •  " .. AvailableCount .. " AVAILABLE"),
 	Font = Enum.Font.GothamMedium, TextSize = 10,
 	TextColor3 = T.TextSub, TextXAlignment = Enum.TextXAlignment.Left,
 	ZIndex = 11,
@@ -664,6 +674,23 @@ local function CloseLoader()
 	end)
 end
 
+local function DownloadScript(url)
+	local request = (syn and syn.request) or http_request or request
+	if type(request) == "function" then
+		local response = request({Url = url, Method = "GET"})
+		local statusCode = tonumber(response and (response.StatusCode or response.Status))
+		if statusCode and statusCode ~= 200 then error("HTTP " .. tostring(statusCode)) end
+		local body = response and (response.Body or response.body)
+		if type(body) == "string" and #body > 10 then return body end
+		error("empty response")
+	end
+	if game and type(game.HttpGet) == "function" then
+		local body = game:HttpGet(url)
+		if type(body) == "string" and #body > 10 then return body end
+	end
+	error("No compatible HTTP function")
+end
+
 local function ExecuteScript(g, selected)
 	if loading then return end
 	loading = true
@@ -673,13 +700,7 @@ local function ExecuteScript(g, selected)
 	task.wait()
 	SetStage("Downloading " .. g.Name .. "…", 35, T.Accent2)
 
-	local ok, result = pcall(function()
-		local response = syn and syn.request or http_request or request
-		if not response then error("No HTTP function") end
-		local res = response({Url = g.Url, Method = "GET"})
-		if res.StatusCode ~= 200 then error("HTTP " .. tostring(res.StatusCode)) end
-		return res.Body
-	end)
+	local ok, result = pcall(DownloadScript, g.Url)
 
 	if not (ok and result and type(result) == "string" and #result > 10) then
 		loading = false
@@ -786,6 +807,22 @@ local function CreateGameCard(g, index)
 			Parent = currentBadge, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
 			Text = "CURRENT", Font = Enum.Font.GothamBlack, TextSize = 7,
 			TextColor3 = Color3.fromRGB(255, 255, 255), ZIndex = 11,
+		})
+	end
+
+	if not g.Locked then
+		local readyBadge = New("Frame", {
+			Parent = card, AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -50, 0, 12), Size = UDim2.fromOffset(42, 16),
+			BackgroundColor3 = g.Recommended and (g.Color or T.Accent) or T.ControlBG,
+			BackgroundTransparency = g.Recommended and 0.72 or 0.18,
+			BorderSizePixel = 0, ZIndex = 8,
+		})
+		New("UICorner", {Parent = readyBadge, CornerRadius = UDim.new(1, 0)})
+		New("TextLabel", {
+			Parent = readyBadge, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
+			Text = "READY", Font = Enum.Font.GothamBold, TextSize = 7,
+			TextColor3 = g.Recommended and Color3.fromRGB(255, 255, 255) or T.TextSub, ZIndex = 9,
 		})
 	end
 
