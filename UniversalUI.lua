@@ -171,6 +171,15 @@ local Themes = {
         Border = Color3.fromRGB(92, 52, 80), ControlBG = Color3.fromRGB(47, 28, 48),
     },
 
+    ["Halloween"] = {
+        MainBG = Color3.fromRGB(16, 12, 23), SidebarBG = Color3.fromRGB(23, 16, 32),
+        TopbarBG = Color3.fromRGB(29, 20, 39), SectionBG = Color3.fromRGB(30, 21, 40),
+        SectionHeaderBG = Color3.fromRGB(39, 25, 48), ElementBG = Color3.fromRGB(37, 24, 46),
+        ElementHoverBG = Color3.fromRGB(59, 32, 62), Accent = Color3.fromRGB(255, 139, 45),
+        TextMain = Color3.fromRGB(255, 246, 234), TextSub = Color3.fromRGB(196, 176, 211),
+        Border = Color3.fromRGB(83, 49, 103), ControlBG = Color3.fromRGB(32, 21, 43),
+    },
+
     ["Redline"] = {
         MainBG = Color3.fromRGB(9, 9, 11), SidebarBG = Color3.fromRGB(13, 12, 15),
         TopbarBG = Color3.fromRGB(17, 14, 17), SectionBG = Color3.fromRGB(19, 16, 19),
@@ -219,6 +228,7 @@ local Themes = {
 }
 
 local ThemeAccents = {
+    ["Halloween"] = {Accent2 = Color3.fromRGB(255, 194, 106), Accent3 = Color3.fromRGB(170, 104, 242)},
     ["KZ Scripts"] = {Accent2 = Color3.fromRGB(192, 132, 252), Accent3 = Color3.fromRGB(124, 58, 237)},
     ["Hello Kitty"] = {Accent2 = Color3.fromRGB(255, 158, 205), Accent3 = Color3.fromRGB(230, 72, 142)},
     ["Cherry Blossom"] = {Accent2 = Color3.fromRGB(251, 182, 206), Accent3 = Color3.fromRGB(190, 92, 139)},
@@ -241,6 +251,7 @@ for key, value in pairs(Themes[themeName]) do T[key] = value end
 -- Visual theme artwork is kept separate from the UI layout so the existing
 -- game modules only see the same public controls and adapter methods.
 local ThemeArtFiles = {
+    ["Halloween"] = "kz-halloween-ghosts-v1.jpg",
     ["KZ Scripts"] = "kz-anime-night.png",
     ["Hello Kitty"] = "pastel-cat.png",
     ["Cherry Blossom"] = "cherry-blossom-dusk.png",
@@ -3169,7 +3180,7 @@ end)
 -- Sync picker colors
 local AccentSyncPickers = {}
 
-ConfigManager.Register("UI Theme", Dropdown(Settings, appearance, "UI Theme", {"KZ Scripts", "Hello Kitty", "Cherry Blossom"}, themeName, function(value)
+ConfigManager.Register("UI Theme", Dropdown(Settings, appearance, "UI Theme", {"KZ Scripts", "Hello Kitty", "Cherry Blossom", "Halloween"}, themeName, function(value)
     local selectedTheme = Themes[value] and value or "KZ Scripts"
     if selectedTheme == themeName then return end
     __KZ_QOL.PlayThemeTransition(function()
