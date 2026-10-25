@@ -1,6 +1,7 @@
 -- Deterministic lifecycle harness. Tween targets are immediate; this does not emulate rendering.
 local now, queue, nodes = 0, {}, {}
 local Screen, Window, Scale, destroyed, __KZ_Cozy, __KZ_UI_OPTIONS, themeName
+local BrandLogo, BrandLogoShell, Dim
 __KZ_Cozy = {}
 local function signal()
     local s = {Listeners = {}}
@@ -16,8 +17,21 @@ local function signal()
     return s
 end
 local function New(class, props)
-    local node = {ClassName = class, Children = {}, Destroying = signal(), Activated = signal()}
+    local node = {ClassName = class, Children = {}, Destroying = signal(), Activated = signal(),
+        BackgroundTransparency = 0, TextTransparency = 0, TextStrokeTransparency = 1, ImageTransparency = 0}
     for key, value in pairs(props or {}) do node[key] = value end
+    function node:IsA(name)
+        return name == self.ClassName or name == "GuiObject" and (self.ClassName == "Frame" or self.ClassName == "CanvasGroup"
+            or self.ClassName == "ImageLabel" or self.ClassName == "TextLabel" or self.ClassName == "TextButton")
+    end
+    function node:GetDescendants()
+        local result = {}
+        for _, child in ipairs(self.Children) do
+            table.insert(result, child)
+            for _, descendant in ipairs(child:GetDescendants()) do table.insert(result, descendant) end
+        end
+        return result
+    end
     function node:Destroy()
         if self.Dead then return end
         self.Dead = true
@@ -90,6 +104,10 @@ local function setup(theme, reduced, short, loadAnimation)
     Screen = New("ScreenGui", {Parent = root})
     Window = New("CanvasGroup", {Parent = Screen, Visible = false, Active = false, GroupTransparency = 1})
     Scale = New("UIScale", {Parent = Window, Scale = .8})
+    Dim = New("Frame", {Parent = Screen, AbsolutePosition = Vector2.new(0,36)})
+    BrandLogoShell = New("Frame", {Parent = Window, Visible = true,
+        AbsolutePosition = Vector2.new(100.4,80.6), AbsoluteSize = Vector2.new(47.8,47.8)})
+    BrandLogo = New("ImageLabel", {Parent = Screen})
     destroyed, themeName = false, theme or "Halloween"
     workspace.CurrentCamera.ViewportSize = Vector2.new(1280,720)
     workspace.CurrentCamera.Changed = signal()
@@ -99,6 +117,7 @@ local function setup(theme, reduced, short, loadAnimation)
     __KZ_Cozy = {Preferences = {}, Reduced = reduced, Short = short, Saves = 0}
     for key, value in pairs(methods) do __KZ_Cozy[key] = value end
     __KZ_Cozy.SavePreferences = function() __KZ_Cozy.Saves += 1 end
+    __KZ_Cozy.BrandFade = {Value = 0}
     RunService.RenderStepped = signal()
 end
 

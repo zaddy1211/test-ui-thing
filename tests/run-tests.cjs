@@ -13,6 +13,9 @@ assert(!source.includes('raw.githubusercontent.com/zaddy1211/ui/'), 'production 
 assert(source.includes('local ASSET_ROOT = "KZScripts/Test UI"'));
 assert(source.includes('Root = "KZScriptsTestHub"'));
 assert(!source.includes('Root = "KZScriptsHub"'));
+assert(source.includes('Parent = Screen, Name = "CrispBrandLogo"'), 'main logo is inside the flattened window');
+assert(!source.includes('HASH BROWN · YOUR KZ HOST') && !source.includes('A little comfort. A little KZ.'), 'old slogans returned');
+assert(!source.includes('ConfigManager.Register("Short Repeat Intro"'), 'old short intro overrides requested pace');
 assert.equal(source, fs.readFileSync(path.join(root,'universal ui'),'utf8'), 'test entry aliases differ');
 const baseline = JSON.parse(fs.readFileSync(path.join(__dirname,'style-baseline.json'),'utf8'));
 for (const block of baseline.blocks) {
@@ -34,8 +37,12 @@ console.log('PASS test repository boundaries, public controls API, and four PNG 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kz-cozy-tests-'));
 try {
   const bundle = path.join(temp, 'intro-tests.luau');
+  const syncStart = source.indexOf('function __KZ_Cozy.SyncBrandLogo()');
+  const syncEnd = source.indexOf('\nend',syncStart)+4;
+  assert(syncStart>=0 && syncEnd>syncStart);
   fs.writeFileSync(bundle, fs.readFileSync(path.join(__dirname,'intro-harness.luau'),'utf8') + '\n'
-    + source.slice(introStart,introEnd) + '\n' + fs.readFileSync(path.join(__dirname,'intro-cases.luau'),'utf8'));
+    + source.slice(introStart,introEnd) + '\n' + source.slice(syncStart,syncEnd) + '\n'
+    + fs.readFileSync(path.join(__dirname,'intro-cases.luau'),'utf8'));
   const run = cp.spawnSync(process.env.LUAU_BIN || 'luau', [bundle], {encoding:'utf8'});
   process.stdout.write(run.stdout || ''); process.stderr.write(run.stderr || '');
   if (run.error) throw run.error;

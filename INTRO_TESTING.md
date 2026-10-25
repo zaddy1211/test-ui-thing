@@ -10,9 +10,13 @@ local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/zaddy1211/
 
 The test repository's `universal ui` alias contains the same library. Existing game modules can keep using the same controls, ConfigManager, KZAdapter and LyraZen APIs.
 
-The intro uses the supplied original/Kitty/blossom logos without a circular crop, and remembers the selected theme. Hash Brown and his speech bubble are anchored to the **bottom-right of the screen**, independently of the centered loading panel. He welcomes the user with typed text and small hops, says “bye!!!!” after readiness, and exits downward. Halloween has two faint ghosts restricted to side lanes outside the loader; other themes have two restrained matching motifs. The game blurs during loading and clears during the reveal.
+The compact loader uses the supplied original/Kitty/blossom logos without a circular crop, and remembers the selected theme. Its regular Frames render text and images directly, instead of flattening them into CanvasGroup textures. The main logo also renders directly under Screen at whole pixel positions, follows the window, and keeps its visibility/fades. Resampling uses Roblox's default smooth filtering; the supplied PNGs are unchanged.
 
-Tabs gain a short slide with their fade, dropdowns expand smoothly, and the existing button/toggle styling is preserved. Reduced Motion and Short Repeat Intro are available in Settings → Window & navigation. Test-only preferences/assets are stored in `KZScripts/Test UI`; test configs use `KZScriptsTestHub`.
+Hash Brown and a plain speech bubble are anchored to the **bottom-right of the screen**, independently of the loading panel. The old slogans, stage counter, and host heading are removed. He types “hey! thanks for using KZ <3”, makes a small hop, pauses, then says “all set. bye!!!!” and leaves slowly. Halloween has two faint ghosts restricted to side lanes outside the loader; other themes have two restrained matching motifs.
+
+The welcome, farewell, and reveal take about **ten seconds from the visible welcome**, on first and repeat launches. Slower initialization still has to finish. Once work is ready, the status shows an honest opening countdown; the progress bar continues to represent actual initialization milestones. The old short-repeat preference no longer speeds this sequence up. Skip remains available.
+
+Tabs gain a short slide with their fade, dropdowns expand smoothly, and the existing button/toggle styling is preserved. Reduced Motion is available in Settings → Window & navigation. Test-only preferences/assets are stored in `KZScripts/Test UI`; test configs use `KZScriptsTestHub`.
 
 The progress bar follows interface initialization milestones. Game modules that perform additional work after constructing the library can explicitly finish the intro:
 
