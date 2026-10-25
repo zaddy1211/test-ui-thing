@@ -608,7 +608,7 @@ function __KZ_Cozy.ResolveLogo(theme)
     return (destination and ResolveCustomAsset(destination)) or LOGO_FALLBACK
 end
 
--- Test-only loading host. Effects live in side lanes, never inside the panel.
+-- Test-only loading host. A borderless scene with a small progress line at the screen edge.
 -- Fade regular Frames directly so images/text never go through an extra CanvasGroup texture.
 function __KZ_Cozy.Fade(root, duration, alpha)
     local c = __KZ_Cozy
@@ -643,8 +643,6 @@ function __KZ_Cozy.Begin()
     c.Active, c.Started = true, os.clock()
     c.Duration, c.DisplayFraction = 4.5, 0
     Window.Visible = false
-    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
-    local stageScale = math.max(.1, math.min((viewport.X - 32) / 620, (viewport.Y - 190) / 330, 1))
     c.Veil = New("TextButton", {
         Parent = Screen, Name = "LoadingGlass", Size = UDim2.fromScale(1, 1), Text = "",
         BackgroundColor3 = Color3.fromRGB(10, 9, 17), BackgroundTransparency = 1,
@@ -652,37 +650,30 @@ function __KZ_Cozy.Begin()
         Modal = true,
     })
     c.Stage = New("Frame", {
-        Parent = Screen, Name = "CozyLoadingStage", AnchorPoint = Vector2.new(.5, .5),
-        Position = UDim2.new(.5, 0, .5, -60), Size = UDim2.fromOffset(620, 330),
-        BackgroundTransparency = 1, ZIndex = 1010,
+        Parent = Screen, Name = "LoadingScene", Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1010,
     })
-    c.StageScale = New("UIScale", {Parent = c.Stage, Scale = stageScale})
-    c.Panel = New("Frame", {
-        Parent = c.Stage, Name = "FrostedLoader", Position = UDim2.fromOffset(90, 38),
-        Size = UDim2.fromOffset(440, 260), BackgroundColor3 = Color3.fromRGB(8, 8, 11),
-        BackgroundTransparency = .08, BorderSizePixel = 0, ZIndex = 1020,
+    c.LoadingStrip = New("Frame", {
+        Parent = Screen, Name = "LoadingLine", AnchorPoint = Vector2.new(0, 1),
+        Position = UDim2.new(0, 32, 1, -36), Size = UDim2.fromOffset(304, 44),
+        BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1020,
     })
-    Corner(c.Panel, 18)
-    Stroke(c.Panel, "Border", .35, 1)
-    c.Logo = New("ImageLabel", {
-        Parent = c.Panel, Position = UDim2.fromOffset(140, 10), Size = UDim2.fromOffset(160, 160),
-        BackgroundTransparency = 1, Image = LOGO, ScaleType = Enum.ScaleType.Fit,
-        ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1021,
-    })
-    New("UICorner", {Parent = c.Logo, CornerRadius = UDim.new(1, 0)})
+    c.StripScale = New("UIScale", {Parent = c.LoadingStrip, Scale = 1})
     c.Status = New("TextLabel", {
-        Parent = c.Panel, Position = UDim2.fromOffset(32, 181), Size = UDim2.fromOffset(376, 24),
-        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Center,
-        Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.fromRGB(210, 207, 215), ZIndex = 1021,
+        Parent = c.LoadingStrip, Size = UDim2.fromOffset(304, 24),
+        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.GothamMedium, TextSize = 14, TextColor3 = Color3.fromRGB(239, 237, 244),
+        TextStrokeTransparency = .8, ZIndex = 1021,
     })
-    local track = New("Frame", {Parent = c.Panel, Position = UDim2.fromOffset(32, 221),
-        Size = UDim2.fromOffset(376, 3), BackgroundColor3 = T.ControlBG, BorderSizePixel = 0, ZIndex = 1021})
+    local track = New("Frame", {Parent = c.LoadingStrip, Position = UDim2.fromOffset(0, 36),
+        Size = UDim2.fromOffset(304, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundTransparency = .82, BorderSizePixel = 0, ZIndex = 1021})
     Corner(track, 4)
     c.Fill = New("Frame", {Parent = track, Size = UDim2.fromScale(0, 1),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0, ZIndex = 1022})
     Corner(c.Fill, 4)
     Gradient(c.Fill, {"Accent3", "Accent", "Accent2"}, 0)
-    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,3),
+    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,2),
         BackgroundColor3 = Color3.fromRGB(255,255,255), BackgroundTransparency = .4,
         BorderSizePixel = 0, Visible = false, ZIndex = 1023})
     Corner(c.Glint, 3)
@@ -716,9 +707,9 @@ function __KZ_Cozy.Begin()
     end)
     c.Decor = {}
     if not c.Reduced then
-        for index, x in ipairs({42, 578}) do
-            local decor = New("Frame", {Parent = c.Stage, Name = "OutsideEffect" .. index,
-                AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromOffset(x, index == 1 and 112 or 230),
+        for index, x in ipairs({.32, .7}) do
+            local decor = New("Frame", {Parent = c.Stage, Name = "DriftingEffect" .. index,
+                AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(x, index == 1 and .42 or .6),
                 Size = UDim2.fromOffset(56, 70), BackgroundTransparency = 1, ZIndex = 1011})
             local sprite, glow, fallback
             if themeName == "Halloween" then
@@ -738,7 +729,7 @@ function __KZ_Cozy.Begin()
                     Text = themeName == "Hello Kitty" and "♡" or themeName == "Cherry Blossom" and "❀" or "✧",
                     Font = Enum.Font.Gotham, TextSize = 33, TextColor3 = T.Accent2, TextTransparency = .65})
             end
-            table.insert(c.Decor, {Node = decor, X = x, Y = index == 1 and 112 or 230, Phase = (index - 1) * math.pi,
+            table.insert(c.Decor, {Node = decor, X = x, Y = index == 1 and .42 or .6, Phase = (index - 1) * math.pi,
                 Side = index == 1 and -1 or 1, Sprite = sprite, Glow = glow, Fallback = fallback})
         end
     end
@@ -761,8 +752,10 @@ function __KZ_Cozy.Begin()
             if not c.Reduced then
                 local exit = c.ExitStarted and math.clamp((os.clock() - c.ExitStarted) / .45, 0, 1) or 0
                 local phase = elapsed * 1.18 + data.Phase
-                data.Node.Position = UDim2.fromOffset(data.X + math.sin(phase * .55) * 8 + data.Side * exit * 36,
-                    data.Sprite and (168 + math.sin(phase) * 62) or (data.Y + math.sin(phase) * 12))
+                local x = c.SceneWidth * data.X + math.sin(phase * .65) * 24 + data.Side * exit * 36
+                local y = c.SceneHeight * data.Y + math.sin(phase) * (data.Sprite and 26 or 12)
+                data.Node.Position = UDim2.fromOffset(math.clamp(x, 40, math.max(40, c.SceneWidth - 40)),
+                    math.clamp(y, 44, math.max(44, c.SceneHeight - 44)))
                 data.Node.Rotation = math.sin(phase - .4) * (data.Sprite and 5 or 2)
                 if data.Sprite then
                     local opacity = .7 + math.sin(phase * .7) * .1
@@ -778,14 +771,10 @@ function __KZ_Cozy.Begin()
     if workspace.CurrentCamera then
         c.IntroViewportConnection = workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(c.ResizeIntro)
     end
-    Tween(c.Veil, .6, {BackgroundTransparency = .6}, Enum.EasingStyle.Sine)
-    c.Fade(c.Panel, 0, 1)
+    Tween(c.Veil, .6, {BackgroundTransparency = .7}, Enum.EasingStyle.Sine)
+    c.Fade(c.LoadingStrip, 0, 1)
     c.Fade(c.Host, 0, 1)
-    c.Fade(c.Panel, c.Reduced and .1 or .55, 0)
-    if not c.Reduced then
-        c.Panel.Position = UDim2.fromOffset(90,46)
-        Tween(c.Panel, .5, {Position = UDim2.fromOffset(90,38)}, Enum.EasingStyle.Quint)
-    end
+    c.Fade(c.LoadingStrip, c.Reduced and .1 or .55, 0)
     c.Fade(c.Host, c.Reduced and .1 or .65, 0)
     -- The welcome begins once the supplied cat image has been prepared.
     -- An initialization error must never leave the game blurred or blocked.
@@ -848,7 +837,7 @@ function __KZ_Cozy.UpdateLoading()
     c.Status.Text = "Loading " .. percent .. "%"
     c.Fill.Size = UDim2.fromScale(c.DisplayFraction, 1)
     c.Glint.Visible = not c.Reduced and percent > 2 and percent < 100
-    c.Glint.Position = UDim2.fromOffset(math.clamp(376 * c.DisplayFraction - 14, 0, 362), 0)
+    c.Glint.Position = UDim2.fromOffset(math.clamp(304 * c.DisplayFraction - 14, 0, 290), 0)
     if c.Ready and welcomeRead and c.DisplayFraction >= .82 and not c.FarewellStarted then
         c.FarewellStarted = os.clock()
         c.Say("all set. bye!!!!")
@@ -862,7 +851,7 @@ function __KZ_Cozy.Cleanup(reveal)
     if c.Motion then c.Motion:Disconnect(); c.Motion = nil end
     if c.IntroViewportConnection then c.IntroViewportConnection:Disconnect(); c.IntroViewportConnection = nil end
     if c.DestroyConnection then c.DestroyConnection:Disconnect(); c.DestroyConnection = nil end
-    for _, field in ipairs({"Blur", "Host", "Stage", "Veil"}) do
+    for _, field in ipairs({"Blur", "Host", "Stage", "LoadingStrip", "Veil"}) do
         if c[field] then c[field]:Destroy(); c[field] = nil end
     end
     c.FadeRecords = nil
@@ -901,7 +890,7 @@ function __KZ_Cozy.Finish(failure)
             if not c.Reduced then
                 Tween(c.Host, .45, {Position = UDim2.new(1, -16, 1, 150)}, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
             end
-            c.Fade(c.Panel, .4, 1)
+            c.Fade(c.LoadingStrip, .4, 1)
             Tween(c.Veil, .45, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
             if c.Blur then Tween(c.Blur, .45, {Size = 0}, Enum.EasingStyle.Sine) end
             Window.Visible, Window.GroupTransparency = not failure, 1
@@ -920,11 +909,20 @@ end
 function __KZ_Cozy.ResizeIntro()
     local c = __KZ_Cozy
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
-    if c.StageScale and c.StageScale.Parent then
-        c.StageScale.Scale = math.max(.1, math.min((viewport.X - 32) / 620, (viewport.Y - 190) / 330, 1))
-    end
     if c.HostScale and c.HostScale.Parent then
         c.HostScale.Scale = math.max(.1, math.min((viewport.X - 32) / 420, (viewport.Y - 24) / 160, 1))
+    end
+    if c.LoadingStrip and c.LoadingStrip.Parent then
+        local hostScale = c.HostScale and c.HostScale.Scale or 1
+        local stripScale = math.max(.1, math.min((viewport.X - 64) / 304, 1))
+        c.StripScale.Scale = stripScale
+        -- Stack above the corner host only when there is not enough width for both.
+        local stacked = 32 + 304 * stripScale + 32 > viewport.X - 16 - 420 * hostScale
+        local bottom = stacked and (16 + 138 * hostScale + 32) or 36
+        c.LoadingStrip.Position = UDim2.new(0, 32, 1, -bottom)
+        c.SceneWidth = viewport.X
+        c.SceneHeight = math.max(88, math.min(viewport.Y - bottom - 44 * stripScale,
+            viewport.Y - 16 - 138 * hostScale) - 24)
     end
 end
 
@@ -945,7 +943,6 @@ if __KZ_Cozy.Active then
     __KZ_Cozy.Say("thanks for using KZ! a little lag on load is normal.")
 end
 LOGO = __KZ_Cozy.ResolveLogo(themeName)
-if __KZ_Cozy.Active and __KZ_Cozy.Logo then __KZ_Cozy.Logo.Image = LOGO end
 __KZ_Cozy.Progress(2, "Loading interface…")
 UpdateThemeArt(themeName, false)
 BindTheme(function()
