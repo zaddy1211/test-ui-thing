@@ -255,7 +255,7 @@ do
     end)
     c.Reduced = __KZ_UI_OPTIONS.ReducedMotion == true or c.Preferences.ReducedMotion == true
     if __KZ_UI_OPTIONS.ReducedMotion == false then c.Reduced = false end
-    -- The requested ten-second pace applies to repeat launches too.
+    -- The short loading sequence applies to first and repeat launches.
     c.Short = false
     function c.SavePreferences()
         if type(writefile) ~= "function" then return end
@@ -642,6 +642,7 @@ function __KZ_Cozy.Begin()
     if __KZ_UI_OPTIONS.LoadAnimation == false then return end
     local c = __KZ_Cozy
     c.Active, c.Started = true, os.clock()
+    c.Duration, c.DisplayFraction = 4.5, 0
     Window.Visible = false
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
     local stageScale = math.max(.1, math.min((viewport.X - 32) / 620, (viewport.Y - 190) / 330, 1))
@@ -672,16 +673,20 @@ function __KZ_Cozy.Begin()
     Corner(c.Logo, 16)
     c.Status = New("TextLabel", {
         Parent = c.Panel, Position = UDim2.fromOffset(32, 181), Size = UDim2.fromOffset(376, 24),
-        BackgroundTransparency = 1, Text = "Loading…", TextXAlignment = Enum.TextXAlignment.Center,
+        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Center,
         Font = Enum.Font.Gotham, TextSize = 12, TextColor3 = Color3.fromRGB(210, 207, 215), ZIndex = 1021,
     })
     local track = New("Frame", {Parent = c.Panel, Position = UDim2.fromOffset(32, 221),
         Size = UDim2.fromOffset(376, 3), BackgroundColor3 = T.ControlBG, BorderSizePixel = 0, ZIndex = 1021})
     Corner(track, 4)
-    c.Fill = New("Frame", {Parent = track, Size = UDim2.fromScale(.05, 1),
+    c.Fill = New("Frame", {Parent = track, Size = UDim2.fromScale(0, 1),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0, ZIndex = 1022})
     Corner(c.Fill, 4)
     Gradient(c.Fill, {"Accent3", "Accent", "Accent2"}, 0)
+    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,3),
+        BackgroundColor3 = Color3.fromRGB(255,255,255), BackgroundTransparency = .4,
+        BorderSizePixel = 0, Visible = false, ZIndex = 1023})
+    Corner(c.Glint, 3)
 
     c.Host = New("Frame", {
         Parent = Screen, Name = "HashBrownHost", AnchorPoint = Vector2.new(1, 1),
@@ -720,36 +725,33 @@ function __KZ_Cozy.Begin()
         for index, x in ipairs({42, 578}) do
             local decor = New("Frame", {Parent = c.Stage, Name = "OutsideEffect" .. index,
                 AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromOffset(x, index == 1 and 112 or 230),
-                Size = UDim2.fromOffset(44, 60), BackgroundTransparency = 1, ZIndex = 1011})
+                Size = UDim2.fromOffset(56, 70), BackgroundTransparency = 1, ZIndex = 1011})
+            local sprite, glow, fallback
             if themeName == "Halloween" then
-                local body = New("Frame", {Parent = decor, Size = UDim2.fromOffset(36, 44), Position = UDim2.fromOffset(4, 0),
-                    BackgroundColor3 = Color3.fromRGB(244, 235, 255), BackgroundTransparency = .66, BorderSizePixel = 0})
-                Corner(body, 18)
-                for foot = 0, 2 do
-                    local toe = New("Frame", {Parent = decor, Position = UDim2.fromOffset(4 + foot * 12, 31), Size = UDim2.fromOffset(12, 18),
-                        BackgroundColor3 = Color3.fromRGB(244, 235, 255), BackgroundTransparency = .66, BorderSizePixel = 0})
-                    Corner(toe, 6)
-                end
-                for _, eyeX in ipairs({11, 25}) do
-                    local eye = New("Frame", {Parent = decor, Position = UDim2.fromOffset(eyeX, 17), Size = UDim2.fromOffset(4, 7),
-                        BackgroundColor3 = T.Accent3, BackgroundTransparency = .4, BorderSizePixel = 0, ZIndex = 1012})
-                    Corner(eye, 3)
-                end
+                glow = New("ImageLabel", {Parent = decor, Name = "GhostGlow", AnchorPoint = Vector2.new(.5,.5),
+                    Position = UDim2.fromScale(.5,.5), Size = UDim2.fromOffset(64,80),
+                    BackgroundTransparency = 1, Image = c.GhostAsset or "", ImageColor3 = T.Accent3,
+                    ImageTransparency = .88, ScaleType = Enum.ScaleType.Fit,
+                    ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1011})
+                sprite = New("ImageLabel", {Parent = decor, Name = "SoftGhost", Size = UDim2.fromScale(1,1),
+                    BackgroundTransparency = 1, Image = c.GhostAsset or "", ImageTransparency = .24,
+                    ScaleType = Enum.ScaleType.Fit, ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1012})
+                fallback = New("TextLabel", {Parent = decor, Name = "GhostFallback", Size = UDim2.fromScale(1,1),
+                    BackgroundTransparency = 1, Text = "👻", Font = Enum.Font.Gotham, TextSize = 38,
+                    TextTransparency = .45, Visible = not c.GhostAsset, ZIndex = 1012})
             else
                 New("TextLabel", {Parent = decor, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
                     Text = themeName == "Hello Kitty" and "♡" or themeName == "Cherry Blossom" and "❀" or "✧",
                     Font = Enum.Font.Gotham, TextSize = 33, TextColor3 = T.Accent2, TextTransparency = .65})
             end
-            table.insert(c.Decor, {Node = decor, X = x, Y = index == 1 and 112 or 230, Phase = index * 2.4})
+            table.insert(c.Decor, {Node = decor, X = x, Y = index == 1 and 112 or 230, Phase = (index - 1) * math.pi,
+                Side = index == 1 and -1 or 1, Sprite = sprite, Glow = glow, Fallback = fallback})
         end
     end
     c.Motion = RunService.RenderStepped:Connect(function()
         if not c.Active or not c.Stage.Parent then return end
         local elapsed = os.clock() - c.Started
-        if c.OpenAt and c.Ready and c.Status and c.Status.Parent then
-            local remaining = math.max(0, math.ceil(c.OpenAt - os.clock()))
-            c.Status.Text = remaining > 0 and ("Opening in " .. remaining .. "s") or "Ready"
-        end
+        c.UpdateLoading()
         if not c.Reduced and c.Cat and c.Cat.Parent then
             local speechTime = os.clock() - (c.SpeechStarted or c.Started)
             local hop = speechTime < 1.2 and math.sin(speechTime / 1.2 * math.pi) * 6 or 0
@@ -763,8 +765,16 @@ function __KZ_Cozy.Begin()
         for _, data in ipairs(c.Decor) do
             data.Node.Visible = not c.Reduced
             if not c.Reduced then
-                data.Node.Position = UDim2.fromOffset(data.X + math.sin(elapsed * .5 + data.Phase) * 4,
-                    data.Y + math.sin(elapsed * .7 + data.Phase) * 12)
+                local exit = c.ExitStarted and math.clamp((os.clock() - c.ExitStarted) / .45, 0, 1) or 0
+                local phase = elapsed * 1.18 + data.Phase
+                data.Node.Position = UDim2.fromOffset(data.X + math.sin(phase * .55) * 8 + data.Side * exit * 36,
+                    data.Sprite and (168 + math.sin(phase) * 62) or (data.Y + math.sin(phase) * 12))
+                data.Node.Rotation = math.sin(phase - .4) * (data.Sprite and 5 or 2)
+                if data.Sprite then
+                    local opacity = .7 + math.sin(phase * .7) * .1
+                    data.Sprite.ImageTransparency = 1 - opacity * (1 - exit)
+                    data.Glow.ImageTransparency = 1 - .12 * (1 - exit)
+                end
             end
         end
     end)
@@ -778,6 +788,10 @@ function __KZ_Cozy.Begin()
     c.Fade(c.Panel, 0, 1)
     c.Fade(c.Host, 0, 1)
     c.Fade(c.Panel, c.Reduced and .1 or .55, 0)
+    if not c.Reduced then
+        c.Panel.Position = UDim2.fromOffset(90,46)
+        Tween(c.Panel, .5, {Position = UDim2.fromOffset(90,38)}, Enum.EasingStyle.Quint)
+    end
     c.Fade(c.Host, c.Reduced and .1 or .65, 0)
     -- The welcome begins once the supplied cat image has been prepared.
     -- An initialization error must never leave the game blurred or blocked.
@@ -811,9 +825,40 @@ end
 
 function __KZ_Cozy.Progress(step, message)
     local c = __KZ_Cozy
-    if not c.Active or not c.Status or c.Finishing then return end
-    c.Status.Text = tostring(message)
-    Tween(c.Fill, c.Reduced and .05 or .3, {Size = UDim2.fromScale(math.clamp(step / 4, .05, 1), 1)}, Enum.EasingStyle.Sine)
+    c.RealStep, c.StageMessage = math.clamp(step, 1, 4), tostring(message)
+    if c.Error and c.Status and c.Status.Parent then c.Status.Text = "Could not load" end
+end
+
+function __KZ_Cozy.SetGhostAsset(asset)
+    local c = __KZ_Cozy
+    c.GhostAsset = asset
+    if not c.Active or not asset then return end
+    for _, data in ipairs(c.Decor) do
+        if data.Sprite then
+            data.Sprite.Image, data.Glow.Image = asset, asset
+            data.Fallback.Visible = false
+        end
+    end
+end
+
+function __KZ_Cozy.UpdateLoading()
+    local c = __KZ_Cozy
+    if not c.Active or c.Error or not c.Status or not c.Status.Parent then return end
+    local elapsed = os.clock() - c.Started
+    local time = math.clamp(elapsed / c.Duration, 0, 1)
+    local eased = .5 - .5 * math.cos(time * math.pi)
+    local welcomeRead = not c.WelcomeStarted or os.clock() - c.WelcomeStarted >= 1.15
+    local cap = (c.Ready and welcomeRead) and 1 or .96
+    c.DisplayFraction = math.max(c.DisplayFraction, math.min(eased, cap))
+    local percent = math.floor(c.DisplayFraction * 100 + .00001)
+    c.Status.Text = "Loading " .. percent .. "%"
+    c.Fill.Size = UDim2.fromScale(c.DisplayFraction, 1)
+    c.Glint.Visible = not c.Reduced and percent > 2 and percent < 100
+    c.Glint.Position = UDim2.fromOffset(math.clamp(376 * c.DisplayFraction - 14, 0, 362), 0)
+    if c.Ready and welcomeRead and c.DisplayFraction >= .82 and not c.FarewellStarted then
+        c.FarewellStarted = os.clock()
+        c.Say("all set. bye!!!!")
+    end
 end
 
 function __KZ_Cozy.Cleanup(reveal)
@@ -837,39 +882,44 @@ end
 function __KZ_Cozy.Finish(failure)
     local c = __KZ_Cozy
     if c.Finishing then return end
-    c.Ready = failure ~= true
+    c.Ready, c.Error = failure ~= true, failure == true
     c.Progress(4, failure and "Could not load" or "Ready")
     c.Finishing = true
-    if not failure and c.Active then c.OpenAt = (c.WelcomeStarted or c.Started) + 10 end
     task.spawn(function()
         if c.Active then
-            -- Ten seconds of visible welcome, farewell, and reveal; real work can take longer.
-            local minimum = failure and .2 or 7.85
-            while c.Active and os.clock() - (c.WelcomeStarted or c.Started) < minimum do task.wait(.05) end
-            if not c.Active then return end
-            c.Say(failure and "couldn't load it. try again?" or "all set. bye!!!!")
-            task.wait(failure and .8 or 1.5)
-            if not c.Active then return end
-            c.Fade(c.Host, .65, 1)
-            if not c.Reduced then
-                Tween(c.Host, .65, {Position = UDim2.new(1, -16, 1, 150)}, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            if failure then
+                c.Say("couldn't load it. try again?")
+                task.wait(.8)
+            else
+                -- The UI remains hidden until both initialization and the 0–100 animation finish.
+                while c.Active do
+                    c.UpdateLoading()
+                    if c.DisplayFraction >= 1 then break end
+                    task.wait(1/60)
+                end
+                if not c.Active then return end
+                while c.Active and c.FarewellStarted and os.clock() - c.FarewellStarted < .55 do task.wait(.02) end
+                task.wait(.12) -- Give 100% one readable beat before the reveal.
             end
-            c.Fade(c.Panel, .5, 1)
-            Tween(c.Veil, .6, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
-            if c.Blur then Tween(c.Blur, .6, {Size = 0}, Enum.EasingStyle.Sine) end
+            if not c.Active then return end
+            c.ExitStarted = os.clock()
+            c.Fade(c.Host, .45, 1)
+            if not c.Reduced then
+                Tween(c.Host, .45, {Position = UDim2.new(1, -16, 1, 150)}, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            end
+            c.Fade(c.Panel, .4, 1)
+            Tween(c.Veil, .45, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
+            if c.Blur then Tween(c.Blur, .45, {Size = 0}, Enum.EasingStyle.Sine) end
             Window.Visible, Window.GroupTransparency = not failure, 1
             local target = GetTargetScale and GetTargetScale() or 1
             Scale.Scale = target * (c.Reduced and 1 or .985)
-            Tween(Window, .5, {GroupTransparency = 0}, Enum.EasingStyle.Sine)
-            Tween(Scale, .65, {Scale = target}, Enum.EasingStyle.Quint)
+            Tween(Window, .4, {GroupTransparency = 0}, Enum.EasingStyle.Sine)
+            Tween(Scale, .45, {Scale = target}, Enum.EasingStyle.Quint)
             if not failure and c.RevealContent then c.RevealContent() end
-            task.wait(.65)
+            task.wait(.45)
         end
         c.Cleanup(true)
-        if not failure then
-            c.Preferences.SeenIntro = true
-            c.SavePreferences()
-        end
+        if not failure then c.Preferences.SeenIntro = true; c.SavePreferences() end
     end)
 end
 
@@ -886,6 +936,10 @@ end
 
 __KZ_Cozy.Begin()
 __KZ_Cozy.Progress(1, "Loading images…")
+if __KZ_Cozy.Active and themeName == "Halloween" then
+    local destination = DownloadThemeArt("kz-ghost-soft-v1.png")
+    __KZ_Cozy.SetGhostAsset(destination and ResolveCustomAsset(destination))
+end
 if __KZ_Cozy.Active then
     local destination = DownloadThemeArt("hash-brown-host-v1.png")
     local asset = destination and ResolveCustomAsset(destination)

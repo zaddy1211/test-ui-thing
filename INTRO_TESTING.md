@@ -14,11 +14,13 @@ The compact loader uses the supplied original/Kitty/blossom logos without a circ
 
 Hash Brown and a plain speech bubble are anchored to the **bottom-right of the screen**, independently of the loading panel. The old slogans, stage counter, and host heading are removed. He types “hey! thanks for using KZ <3”, makes a small hop, pauses, then says “all set. bye!!!!” and leaves slowly. Halloween has two faint ghosts restricted to side lanes outside the loader; other themes have two restrained matching motifs.
 
-The welcome, farewell, and reveal take about **ten seconds from the visible welcome**, on first and repeat launches. Slower initialization still has to finish. Once work is ready, the status shows an honest opening countdown; the progress bar continues to represent actual initialization milestones. The old short-repeat preference no longer speeds this sequence up. Skip remains available.
+The status now reads **Loading 0% → Loading 100%**. The bar fills smoothly over 4.5 seconds, then shows 100% briefly and reveals the interface in about five seconds total on a cached launch. The old opening countdown and ten-second delay are removed. Percentage represents the loading sequence; actual initialization must also finish before it can reach 100%. Slow downloads/initialization can extend the sequence, holding below 100% while waiting. Skip remains available.
+
+Halloween's ghosts now use a single smooth transparent PNG sprite, rendered from the included editable SVG. Two softly lit sprites drift in opposite vertical paths outside the panel, tilt gently, then glide outward and dissolve at completion. The old overlapping rectangle/foot construction is removed. A light glint follows the progress bar; the panel settles into place on entry. Reduced Motion suppresses decorative movement.
 
 Tabs gain a short slide with their fade, dropdowns expand smoothly, and the existing button/toggle styling is preserved. Reduced Motion is available in Settings → Window & navigation. Test-only preferences/assets are stored in `KZScripts/Test UI`; test configs use `KZScriptsTestHub`.
 
-The progress bar follows interface initialization milestones. Game modules that perform additional work after constructing the library can explicitly finish the intro:
+Game modules that perform additional work after constructing the library can explicitly mark initialization complete:
 
 ```lua
 getgenv().__KZ_UI_OPTIONS = {Game = "My Game", ManualReady = true}

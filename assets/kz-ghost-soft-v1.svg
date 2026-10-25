@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="640" viewBox="0 0 128 160">
+  <defs><linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+    <stop stop-color="#fffefa"/><stop offset="1" stop-color="#ddd5f2"/>
+  </linearGradient></defs>
+  <path d="M64 12C37 12 20 32 20 62V112C20 125 16 135 10 142C22 147 33 139 40 134C52 148 65 148 76 134C87 145 99 148 116 140C105 129 108 118 108 104V62C108 32 91 12 64 12Z"
+    fill="url(#sheet)" stroke="#b7a7da" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M30 64C30 40 43 25 62 23" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="49" cy="66" rx="6.5" ry="9" fill="#393246"/>
+  <ellipse cx="77" cy="66" rx="6.5" ry="9" fill="#393246"/>
+  <circle cx="47" cy="63" r="1.7" fill="#fff"/><circle cx="75" cy="63" r="1.7" fill="#fff"/>
+  <path d="M58 87Q63 92 68 87" fill="none" stroke="#6a5c80" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
