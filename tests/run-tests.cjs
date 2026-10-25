@@ -17,6 +17,11 @@ assert(source.includes('Parent = Screen, Name = "CrispBrandLogo"'), 'main logo i
 assert(!source.includes('HASH BROWN · YOUR KZ HOST') && !source.includes('A little comfort. A little KZ.'), 'old slogans returned');
 assert(!source.includes('ConfigManager.Register("Short Repeat Intro"'), 'old short intro overrides requested pace');
 assert(!source.includes('Opening in ') && !source.includes('c.OpenAt'), 'old countdown returned');
+assert(!source.includes('Skip intro') && !source.includes('c.Skip') && !source.includes('__KZ_UI_OPTIONS.LoadAnimation == false'), 'loading can be skipped');
+assert(source.includes('thanks for using KZ! a little lag on load is normal.'), 'cat lag message missing');
+for (const logo of ['c.Logo','BrandLogoShell','BrandLogo','OpenButton']) {
+  assert(source.includes('New("UICorner", {Parent = '+logo+', CornerRadius = UDim.new(1, 0)})'), 'noncircular logo: '+logo);
+}
 assert.equal(source, fs.readFileSync(path.join(root,'universal ui'),'utf8'), 'test entry aliases differ');
 const baseline = JSON.parse(fs.readFileSync(path.join(__dirname,'style-baseline.json'),'utf8'));
 for (const block of baseline.blocks) {

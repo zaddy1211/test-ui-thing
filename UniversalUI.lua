@@ -639,7 +639,6 @@ function __KZ_Cozy.Fade(root, duration, alpha)
     end
 end
 function __KZ_Cozy.Begin()
-    if __KZ_UI_OPTIONS.LoadAnimation == false then return end
     local c = __KZ_Cozy
     c.Active, c.Started = true, os.clock()
     c.Duration, c.DisplayFraction = 4.5, 0
@@ -670,7 +669,7 @@ function __KZ_Cozy.Begin()
         BackgroundTransparency = 1, Image = LOGO, ScaleType = Enum.ScaleType.Fit,
         ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1021,
     })
-    Corner(c.Logo, 16)
+    New("UICorner", {Parent = c.Logo, CornerRadius = UDim.new(1, 0)})
     c.Status = New("TextLabel", {
         Parent = c.Panel, Position = UDim2.fromOffset(32, 181), Size = UDim2.fromOffset(376, 24),
         BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Center,
@@ -711,11 +710,6 @@ function __KZ_Cozy.Begin()
     c.Speech = New("TextLabel", {Parent = bubble, Position = UDim2.fromOffset(14, 9), Size = UDim2.fromOffset(220, 46),
         BackgroundTransparency = 1, Text = "", Font = Enum.Font.Gotham, TextSize = 14, TextWrapped = true,
         TextColor3 = Color3.fromRGB(48, 42, 40), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 1102})
-    c.Skip = New("TextButton", {Parent = c.Panel, Position = UDim2.fromOffset(348, 10), Size = UDim2.fromOffset(70, 24),
-        BackgroundTransparency = 1, Text = "Skip intro", Font = Enum.Font.Gotham, TextSize = 10,
-        TextColor3 = T.TextSub, AutoButtonColor = false, ZIndex = 1024})
-    -- Skipping removes decoration; readiness still comes from initialization.
-    c.Skip.Activated:Connect(function() c.Cleanup(c.Finishing == true) end)
     pcall(function()
         c.Blur = New("BlurEffect", {Parent = game:GetService("Lighting"), Name = "KZTestLoadingBlur", Size = 0})
         Tween(c.Blur, c.Reduced and .1 or .7, {Size = c.Reduced and 8 or 18}, Enum.EasingStyle.Sine)
@@ -847,7 +841,7 @@ function __KZ_Cozy.UpdateLoading()
     local elapsed = os.clock() - c.Started
     local time = math.clamp(elapsed / c.Duration, 0, 1)
     local eased = .5 - .5 * math.cos(time * math.pi)
-    local welcomeRead = not c.WelcomeStarted or os.clock() - c.WelcomeStarted >= 1.15
+    local welcomeRead = not c.WelcomeStarted or os.clock() - c.WelcomeStarted >= 2
     local cap = (c.Ready and welcomeRead) and 1 or .96
     c.DisplayFraction = math.max(c.DisplayFraction, math.min(eased, cap))
     local percent = math.floor(c.DisplayFraction * 100 + .00001)
@@ -948,7 +942,7 @@ if __KZ_Cozy.Active then
         __KZ_Cozy.CatFallback.Visible = false
     end
     __KZ_Cozy.WelcomeStarted = os.clock()
-    __KZ_Cozy.Say("hey! thanks for using KZ <3")
+    __KZ_Cozy.Say("thanks for using KZ! a little lag on load is normal.")
 end
 LOGO = __KZ_Cozy.ResolveLogo(themeName)
 if __KZ_Cozy.Active and __KZ_Cozy.Logo then __KZ_Cozy.Logo.Image = LOGO end
@@ -1122,7 +1116,7 @@ local BrandLogoShell = New("Frame", {
     Visible = true,
 })
 
-Corner(BrandLogoShell, 10)
+New("UICorner", {Parent = BrandLogoShell, CornerRadius = UDim.new(1, 0)})
 Gradient(BrandLogoShell, {"Accent", "Accent2", "Accent3"}, 35)
 Stroke(BrandLogoShell, "Accent2", 0.08, 1.2)
 local BrandLogo = New("ImageLabel", {
@@ -1132,6 +1126,7 @@ local BrandLogo = New("ImageLabel", {
     ResampleMode = Enum.ResamplerMode.Default, ZIndex = 24,
     Visible = true,
 })
+New("UICorner", {Parent = BrandLogo, CornerRadius = UDim.new(1, 0)})
 __KZ_Cozy.BrandFade = New("NumberValue", {Parent = Screen, Value = 0})
 function __KZ_Cozy.SyncBrandLogo()
     if destroyed or not BrandLogo.Parent then return end
@@ -1332,7 +1327,7 @@ local OpenButton = New("ImageButton", {
     ScaleType = Enum.ScaleType.Fit, ResampleMode = Enum.ResamplerMode.Default, Visible = false, ClipsDescendants = true,
     AutoButtonColor = false, ZIndex = 100,
 })
-Corner(OpenButton, 12)
+New("UICorner", {Parent = OpenButton, CornerRadius = UDim.new(1, 0)})
 __KZ_Cozy.OpenLogo = OpenButton
 -- Keep minimized logo colors
 Stroke(OpenButton, "Accent2", 0.02, 1.6)
