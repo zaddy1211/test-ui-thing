@@ -794,7 +794,8 @@ function __KZ_Cozy.Cleanup(reveal)
     for _, field in ipairs({"Blur", "Stage", "Veil"}) do
         if c[field] then c[field]:Destroy(); c[field] = nil end
     end
-    if reveal and not destroyed and Window.Parent then
+    if not reveal and Window.Parent then Window.Visible = false end
+    if reveal and c.Ready and not destroyed and Window.Parent then
         Window.Visible, Window.Active, Window.GroupTransparency = true, true, 0
         if GetTargetScale then Scale.Scale = GetTargetScale() end
     end
@@ -803,6 +804,7 @@ end
 function __KZ_Cozy.Finish(failure)
     local c = __KZ_Cozy
     if c.Finishing then return end
+    c.Ready = failure ~= true
     c.Progress(4, failure and "Could not finish loading" or "Your space is ready")
     c.Finishing = true
     task.spawn(function()
@@ -818,7 +820,7 @@ function __KZ_Cozy.Finish(failure)
             Tween(c.Panel, .5, {GroupTransparency = 1}, Enum.EasingStyle.Sine)
             Tween(c.Veil, .6, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
             if c.Blur then Tween(c.Blur, .6, {Size = 0}, Enum.EasingStyle.Sine) end
-            Window.Visible, Window.GroupTransparency = true, 1
+            Window.Visible, Window.GroupTransparency = not failure, 1
             local target = GetTargetScale and GetTargetScale() or 1
             Scale.Scale = target * (c.Reduced and 1 or .985)
             Tween(Window, .5, {GroupTransparency = 0}, Enum.EasingStyle.Sine)
@@ -4075,6 +4077,7 @@ end)
 local __KZ_AmbientTweens = {}
 local __KZ_WindowOpen = true
 local function __KZ_SetOpen(open)
+    if not __KZ_Cozy.Ready then return end
     __KZ_WindowOpen = open == true
     if __KZ_WindowOpen then
         Window.Visible = true; Dim.Visible = true; OpenButton.Visible = false
@@ -4329,7 +4332,7 @@ __KZ_AddNav("Home", ICONS.Home, 1)
 __KZ_AddNav("Settings", ICONS.Settings, 999)
 __KZ_ApplyTheme()
 __KZ_SelectPage("Home")
-Window.Visible = true
+Window.Visible = false
 Window.Active = false
 Window.GroupTransparency = 1
 Scale.Scale = GetTargetScale()
