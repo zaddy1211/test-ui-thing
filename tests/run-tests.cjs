@@ -47,9 +47,16 @@ try {
   const syncStart = source.indexOf('function __KZ_Cozy.SyncBrandLogo()');
   const syncEnd = source.indexOf('\nend',syncStart)+4;
   assert(syncStart>=0 && syncEnd>syncStart);
+  const dragStart = source.indexOf('local openButtonDragging = false');
+  const dragEnd = source.indexOf('\nlocal DropdownLayer =', dragStart);
+  const clickStart = source.indexOf('OpenButton.MouseButton1Click:Connect(function()');
+  const clickEnd = source.indexOf('\nend)', clickStart) + 5;
+  assert(dragStart>=0 && dragEnd>dragStart && clickStart>=0 && clickEnd>clickStart);
+  const reopen = fs.readFileSync(path.join(__dirname,'reopen-cases.luau'),'utf8')
+    .replace('-- INSERT REOPEN HANDLERS', source.slice(dragStart,dragEnd)+'\n'+source.slice(clickStart,clickEnd));
   fs.writeFileSync(bundle, fs.readFileSync(path.join(__dirname,'intro-harness.luau'),'utf8') + '\n'
     + source.slice(introStart,introEnd) + '\n' + source.slice(syncStart,syncEnd) + '\n'
-    + fs.readFileSync(path.join(__dirname,'intro-cases.luau'),'utf8'));
+    + fs.readFileSync(path.join(__dirname,'intro-cases.luau'),'utf8') + '\n' + reopen);
   const run = cp.spawnSync(process.env.LUAU_BIN || 'luau', [bundle], {encoding:'utf8'});
   process.stdout.write(run.stdout || ''); process.stderr.write(run.stderr || '');
   if (run.error) throw run.error;

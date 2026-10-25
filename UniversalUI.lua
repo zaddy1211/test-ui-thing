@@ -678,22 +678,22 @@ function __KZ_Cozy.Begin()
     Corner(c.Glint, 3)
 
     c.Host = New("Frame", {
-        Parent = Screen, Name = "HashBrownHost", AnchorPoint = Vector2.new(1, 1),
-        Position = UDim2.new(1, -16, 1, -16), Size = UDim2.fromOffset(420, 138), BackgroundTransparency = 1, ZIndex = 1100,
+        Parent = Screen, Name = "HashBrownHost", AnchorPoint = Vector2.new(.5, 1),
+        Position = UDim2.new(.5, 0, .5, -16), Size = UDim2.fromOffset(300, 184), BackgroundTransparency = 1, ZIndex = 1100,
     })
     c.Cat = New("ImageLabel", {
-        Parent = c.Host, Name = "HashBrown", AnchorPoint = Vector2.new(1, 1),
-        Position = UDim2.new(1, -8, 1, -8), Size = UDim2.fromOffset(100, 100),
+        Parent = c.Host, Name = "HashBrown", AnchorPoint = Vector2.new(.5, 1),
+        Position = UDim2.new(.5, 0, 1, -8), Size = UDim2.fromOffset(100, 100),
         BackgroundTransparency = 1, Image = "", ScaleType = Enum.ScaleType.Fit,
         ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1101,
     })
     c.CatFallback = New("TextLabel", {Parent = c.Cat, Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1, Text = "🐈‍⬛", TextSize = 54, Font = Enum.Font.Gotham, ZIndex = 1102})
     -- A plain speech bubble, with the tail pointing toward the cat.
-    New("Frame", {Parent = c.Host, Name = "SpeechTail", Position = UDim2.fromOffset(272, 68),
+    New("Frame", {Parent = c.Host, Name = "SpeechTail", Position = UDim2.fromOffset(143, 57),
         Size = UDim2.fromOffset(14, 14), Rotation = 45, BorderSizePixel = 0,
         BackgroundColor3 = Color3.fromRGB(255, 251, 247), ZIndex = 1100})
-    local bubble = New("Frame", {Parent = c.Host, Name = "SpeechBubble", Position = UDim2.fromOffset(30, 42),
+    local bubble = New("Frame", {Parent = c.Host, Name = "SpeechBubble", Position = UDim2.fromOffset(26, 0),
         Size = UDim2.fromOffset(248, 64), BackgroundColor3 = Color3.fromRGB(255, 251, 247),
         BorderSizePixel = 0, ZIndex = 1101})
     Corner(bubble, 16)
@@ -740,14 +740,14 @@ function __KZ_Cozy.Begin()
             local speechTime = os.clock() - (c.SpeechStarted or c.Started)
             local hop = speechTime < 1.2 and math.sin(speechTime / 1.2 * math.pi) * 6 or 0
             local talking = hop + math.sin(elapsed * 1.4) * 1.2
-            c.Cat.Position = UDim2.new(1, -8, 1, -8 - talking)
+            c.Cat.Position = UDim2.new(.5, 0, 1, -8 - talking)
             c.Cat.Rotation = 0
         elseif c.Cat and c.Cat.Parent then
-            c.Cat.Position = UDim2.new(1, -8, 1, -8)
+            c.Cat.Position = UDim2.new(.5, 0, 1, -8)
             c.Cat.Rotation = 0
         end
         for _, data in ipairs(c.Decor) do
-            data.Node.Visible = not c.Reduced
+            data.Node.Visible = not c.Reduced and c.SceneHeight >= 88
             if not c.Reduced then
                 local exit = c.ExitStarted and math.clamp((os.clock() - c.ExitStarted) / .45, 0, 1) or 0
                 local phase = elapsed * 1.18 + data.Phase
@@ -886,7 +886,8 @@ function __KZ_Cozy.Finish(failure)
             c.ExitStarted = os.clock()
             c.Fade(c.Host, .45, 1)
             if not c.Reduced then
-                Tween(c.Host, .45, {Position = UDim2.new(1, -16, 1, 150)}, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+                Tween(c.Host, .45, {Position = UDim2.new(.5, 0, 0, c.Host.Position.Y.Offset - 8)},
+                    Enum.EasingStyle.Sine, Enum.EasingDirection.In)
             end
             c.Fade(c.LoadingStrip, .4, 1)
             Tween(c.Veil, .45, {BackgroundTransparency = 1}, Enum.EasingStyle.Sine)
@@ -908,19 +909,22 @@ function __KZ_Cozy.ResizeIntro()
     local c = __KZ_Cozy
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280,720)
     if c.HostScale and c.HostScale.Parent then
-        c.HostScale.Scale = math.max(.1, math.min((viewport.X - 32) / 420, (viewport.Y - 24) / 160, 1))
+        c.HostScale.Scale = math.max(.1, math.min((viewport.X - 32) / 300, (viewport.Y - 104) / 184, 1))
     end
     if c.LoadingStrip and c.LoadingStrip.Parent then
         local hostScale = c.HostScale and c.HostScale.Scale or 1
         c.LoadingWidth = math.max(1, math.min(420, viewport.X - 64))
         c.LoadingStrip.Size = UDim2.fromOffset(c.LoadingWidth, 44)
-        -- Keep the bar near the middle and above the corner host on short screens.
-        -- Resize its width directly so its four-pixel track and text never shrink away.
-        local hostTop = viewport.Y - 16 - 138 * hostScale
-        local barBottom = math.min(viewport.Y * .5 + 40, hostTop - 32)
+        -- Center the mascot, its speech and the bar as one group, with a twelve-pixel gap.
+        -- Resize the bar's width directly so its track and text never shrink away.
+        local groupHeight = 184 * hostScale + 12 + 44
+        local barBottom = (viewport.Y + groupHeight) * .5
+        local hostBottom = barBottom - 44 - 12
+        local hostTop = hostBottom - 184 * hostScale
         c.LoadingStrip.Position = UDim2.new(.5, 0, 0, barBottom)
+        if c.Host and c.Host.Parent then c.Host.Position = UDim2.new(.5, 0, 0, hostBottom) end
         c.SceneWidth = viewport.X
-        c.SceneHeight = math.max(88, barBottom - 44 - 24)
+        c.SceneHeight = math.max(0, hostTop - 24)
     end
 end
 
@@ -1383,7 +1387,7 @@ OpenButton.InputChanged:Connect(function(input)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
+table.insert(connections, UserInputService.InputChanged:Connect(function(input)
     if not openButtonDragging or input ~= openButtonDragInput then return end
     local delta = input.Position - openButtonDragStart
 
@@ -1401,7 +1405,7 @@ UserInputService.InputChanged:Connect(function(input)
         openButtonStartPosition.X.Scale, newX,
         openButtonStartPosition.Y.Scale, newY
     )
-end)
+end))
 
 local DropdownLayer = New("Frame", {
     Parent = Window, Name = "DropdownLayer", Size = UDim2.fromScale(1, 1),
@@ -4316,7 +4320,11 @@ local function __KZ_SetOpen(open)
     end
 end
 MinimizeButton.MouseButton1Click:Connect(function() __KZ_SetOpen(false) end)
-OpenButton.MouseButton1Click:Connect(function() __KZ_SetOpen(true) end)
+OpenButton.MouseButton1Click:Connect(function()
+    -- Keep this flag until the next press: click may arrive after the drag's End event.
+    if openButtonMoved then return end
+    __KZ_SetOpen(true)
+end)
 CloseButton.MouseButton1Click:Connect(function() __KZ_Window:Unload() end)
 table.insert(connections, UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and input.KeyCode == menuToggleKey then __KZ_SetOpen(not __KZ_WindowOpen) end

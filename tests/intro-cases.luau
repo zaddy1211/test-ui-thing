@@ -13,7 +13,9 @@ check("two ghosts drift within the open scene above the loading line", function(
         for _, effect in ipairs(__KZ_Cozy.Decor) do
             local x, y = effect.Node.Position.X.Offset, effect.Node.Position.Y.Offset
             assert(x >= 40 and x <= __KZ_Cozy.SceneWidth - 40, "ghost clips the screen")
-            assert(y >= 44 and y <= __KZ_Cozy.SceneHeight - 44, "ghost crosses the loading line")
+            if effect.Node.Visible then
+                assert(y >= 44 and y <= __KZ_Cozy.SceneHeight - 44, "ghost crosses the mascot")
+            end
         end
     end
     __KZ_Cozy.Cleanup(false)
@@ -95,17 +97,19 @@ check("repeat launch keeps the same short 0–100 sequence", function()
     advance(.8)
     assert(not __KZ_Cozy.Active and Window.Active)
 end)
-check("the host is attached to the screen's bottom-right corner, outside the loader", function()
+check("the cat is centered directly above the loading bar", function()
     setup(); __KZ_Cozy.Begin()
     local c = __KZ_Cozy
     assert(c.Host.Parent == Screen and c.Host.Parent ~= c.Stage and c.Host.Parent ~= c.LoadingStrip)
-    assert(c.Host.AnchorPoint.X == 1 and c.Host.AnchorPoint.Y == 1)
-    assert(c.Host.Position.X.Scale == 1 and c.Host.Position.Y.Scale == 1)
-    assert(c.Host.Position.X.Offset == -16 and c.Host.Position.Y.Offset == -16)
+    assert(c.Host.AnchorPoint.X == .5 and c.Host.AnchorPoint.Y == 1)
+    assert(c.Host.Position.X.Scale == .5 and c.Host.Position.X.Offset == 0)
+    assert(c.Cat.AnchorPoint.X == .5 and c.Cat.Position.X.Scale == .5 and c.Cat.Position.X.Offset == 0)
+    assert(c.Host.Position.Y.Offset + 12 == c.LoadingStrip.Position.Y.Offset - 44)
+    local hostY = c.Host.Position.Y.Offset
     c.Stage.Position = UDim2.fromOffset(40,40)
-    assert(c.Host.Position.X.Scale == 1 and c.Host.Position.Y.Scale == 1)
+    assert(c.Host.Position.X.Scale == .5 and c.Host.Position.Y.Offset == hostY)
 end)
-check("the loading line and corner host fit without overlap at all supported viewport sizes", function()
+check("the mascot and loading bar stay centered and fit the supported viewport sizes", function()
     setup(); __KZ_Cozy.Begin()
     for _, dimensions in ipairs({{1920,1080},{1280,720},{844,390},{390,844},{320,568},{640,360}}) do
         local width, height = dimensions[1], dimensions[2]
@@ -113,7 +117,8 @@ check("the loading line and corner host fit without overlap at all supported vie
         workspace.CurrentCamera.Changed:Fire()
         local c = __KZ_Cozy
         local hostScale = c.HostScale.Scale
-        local hostLeft, hostTop = width - 16 - 420 * hostScale, height - 16 - 138 * hostScale
+        local hostLeft = (width - 300 * hostScale) * .5
+        local hostTop = c.Host.Position.Y.Offset - 184 * hostScale
         local stripLeft = width * .5 - c.LoadingWidth * .5
         local stripRight = stripLeft + c.LoadingWidth
         local stripBottom = c.LoadingStrip.Position.Y.Offset
@@ -121,12 +126,14 @@ check("the loading line and corner host fit without overlap at all supported vie
         assert(hostLeft >= 0 and hostTop >= 0, "host clips the viewport")
         assert(stripLeft >= 0 and stripRight <= width and stripTop >= 0 and stripBottom <= height,
             "loading line clips the viewport")
-        assert(stripRight + 32 <= hostLeft or stripBottom + 32 <= hostTop + .001,
-            "loading line overlaps the corner host")
+        assert(c.Host.Position.Y.Offset + 12 <= stripTop + .001, "mascot overlaps the loading line")
+        assert(math.abs(hostTop - (height - stripBottom)) < .001, "loading group is off-center")
         now = 1.7; RunService.RenderStepped:Fire()
         for _, effect in ipairs(c.Decor) do
-            assert(effect.Node.Position.Y.Offset + 44 <= math.min(hostTop, stripTop) - 24 + .001,
-                "ghost overlaps the loading line or host")
+            if effect.Node.Visible then
+                assert(effect.Node.Position.Y.Offset + 44 <= hostTop - 24 + .001,
+                    "ghost overlaps the mascot")
+            end
         end
     end
 end)
@@ -140,8 +147,10 @@ check("a late asset download does not cut off the cat's welcome", function()
     assert(Window.Visible and Window.Active)
 end)
 check("reduced motion also keeps the farewell still", function()
-    setup("Halloween",true); __KZ_Cozy.Begin(); __KZ_Cozy.Finish(); advance(4.7)
-    assert(__KZ_Cozy.Host.Position.Y.Offset == -16)
+    setup("Halloween",true); __KZ_Cozy.Begin()
+    local hostY = __KZ_Cozy.Host.Position.Y.Offset
+    __KZ_Cozy.Finish(); advance(4.7)
+    assert(__KZ_Cozy.Host.Position.Y.Offset == hostY)
     advance(.8)
     assert(Window.Active)
 end)
@@ -233,7 +242,7 @@ check("the loading bar is centered, visible immediately and stays four pixels ta
     local c = __KZ_Cozy
     local track = c.Fill.Parent
     assert(c.LoadingStrip.Position.X.Scale == .5 and c.LoadingStrip.Position.X.Offset == 0)
-    assert(c.LoadingWidth == 420 and c.LoadingStrip.Position.Y.Offset == 400)
+    assert(c.LoadingWidth == 420 and c.LoadingStrip.Position.Y.Offset == 480)
     assert(track.BackgroundTransparency <= .5 and track.Size.Y.Offset == 4)
     assert(c.Status.TextTransparency == 0 and c.Status.Text == "Loading 0%")
     assert(c.Fill.BackgroundTransparency == 0)
