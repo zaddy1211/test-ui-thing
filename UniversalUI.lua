@@ -608,7 +608,7 @@ function __KZ_Cozy.ResolveLogo(theme)
     return (destination and ResolveCustomAsset(destination)) or LOGO_FALLBACK
 end
 
--- Test-only loading host. A borderless scene with a small progress line at the screen edge.
+-- Test-only loading host. A borderless scene with a visible thin progress bar in the middle.
 -- Fade regular Frames directly so images/text never go through an extra CanvasGroup texture.
 function __KZ_Cozy.Fade(root, duration, alpha)
     local c = __KZ_Cozy
@@ -654,26 +654,25 @@ function __KZ_Cozy.Begin()
         BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1010,
     })
     c.LoadingStrip = New("Frame", {
-        Parent = Screen, Name = "LoadingLine", AnchorPoint = Vector2.new(0, 1),
-        Position = UDim2.new(0, 32, 1, -36), Size = UDim2.fromOffset(304, 44),
+        Parent = Screen, Name = "LoadingLine", AnchorPoint = Vector2.new(.5, 1),
+        Position = UDim2.new(.5, 0, .5, 40), Size = UDim2.fromOffset(420, 44),
         BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1020,
     })
-    c.StripScale = New("UIScale", {Parent = c.LoadingStrip, Scale = 1})
     c.Status = New("TextLabel", {
-        Parent = c.LoadingStrip, Size = UDim2.fromOffset(304, 24),
-        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = c.LoadingStrip, Size = UDim2.new(1, 0, 0, 24),
+        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Center,
         Font = Enum.Font.GothamMedium, TextSize = 14, TextColor3 = Color3.fromRGB(239, 237, 244),
         TextStrokeTransparency = .8, ZIndex = 1021,
     })
-    local track = New("Frame", {Parent = c.LoadingStrip, Position = UDim2.fromOffset(0, 36),
-        Size = UDim2.fromOffset(304, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = .82, BorderSizePixel = 0, ZIndex = 1021})
+    local track = New("Frame", {Parent = c.LoadingStrip, Name = "LoadingTrack", Position = UDim2.fromOffset(0, 36),
+        Size = UDim2.new(1, 0, 0, 4), BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundTransparency = .5, BorderSizePixel = 0, ZIndex = 1021})
     Corner(track, 4)
     c.Fill = New("Frame", {Parent = track, Size = UDim2.fromScale(0, 1),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0, ZIndex = 1022})
     Corner(c.Fill, 4)
     Gradient(c.Fill, {"Accent3", "Accent", "Accent2"}, 0)
-    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,2),
+    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,4),
         BackgroundColor3 = Color3.fromRGB(255,255,255), BackgroundTransparency = .4,
         BorderSizePixel = 0, Visible = false, ZIndex = 1023})
     Corner(c.Glint, 3)
@@ -772,9 +771,7 @@ function __KZ_Cozy.Begin()
         c.IntroViewportConnection = workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(c.ResizeIntro)
     end
     Tween(c.Veil, .6, {BackgroundTransparency = .7}, Enum.EasingStyle.Sine)
-    c.Fade(c.LoadingStrip, 0, 1)
     c.Fade(c.Host, 0, 1)
-    c.Fade(c.LoadingStrip, c.Reduced and .1 or .55, 0)
     c.Fade(c.Host, c.Reduced and .1 or .65, 0)
     -- The welcome begins once the supplied cat image has been prepared.
     -- An initialization error must never leave the game blurred or blocked.
@@ -837,7 +834,8 @@ function __KZ_Cozy.UpdateLoading()
     c.Status.Text = "Loading " .. percent .. "%"
     c.Fill.Size = UDim2.fromScale(c.DisplayFraction, 1)
     c.Glint.Visible = not c.Reduced and percent > 2 and percent < 100
-    c.Glint.Position = UDim2.fromOffset(math.clamp(304 * c.DisplayFraction - 14, 0, 290), 0)
+    c.Glint.Position = UDim2.fromOffset(math.clamp(c.LoadingWidth * c.DisplayFraction - 14,
+        0, math.max(0, c.LoadingWidth - 14)), 0)
     if c.Ready and welcomeRead and c.DisplayFraction >= .82 and not c.FarewellStarted then
         c.FarewellStarted = os.clock()
         c.Say("all set. bye!!!!")
@@ -914,15 +912,15 @@ function __KZ_Cozy.ResizeIntro()
     end
     if c.LoadingStrip and c.LoadingStrip.Parent then
         local hostScale = c.HostScale and c.HostScale.Scale or 1
-        local stripScale = math.max(.1, math.min((viewport.X - 64) / 304, 1))
-        c.StripScale.Scale = stripScale
-        -- Stack above the corner host only when there is not enough width for both.
-        local stacked = 32 + 304 * stripScale + 32 > viewport.X - 16 - 420 * hostScale
-        local bottom = stacked and (16 + 138 * hostScale + 32) or 36
-        c.LoadingStrip.Position = UDim2.new(0, 32, 1, -bottom)
+        c.LoadingWidth = math.max(1, math.min(420, viewport.X - 64))
+        c.LoadingStrip.Size = UDim2.fromOffset(c.LoadingWidth, 44)
+        -- Keep the bar near the middle and above the corner host on short screens.
+        -- Resize its width directly so its four-pixel track and text never shrink away.
+        local hostTop = viewport.Y - 16 - 138 * hostScale
+        local barBottom = math.min(viewport.Y * .5 + 40, hostTop - 32)
+        c.LoadingStrip.Position = UDim2.new(.5, 0, 0, barBottom)
         c.SceneWidth = viewport.X
-        c.SceneHeight = math.max(88, math.min(viewport.Y - bottom - 44 * stripScale,
-            viewport.Y - 16 - 138 * hostScale) - 24)
+        c.SceneHeight = math.max(88, barBottom - 44 - 24)
     end
 end
 

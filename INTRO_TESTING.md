@@ -10,7 +10,7 @@ local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/zaddy1211/
 
 The test repository's `universal ui` alias contains the same library. Existing game modules can keep using the same controls, ConfigManager, KZAdapter and LyraZen APIs.
 
-The loader is now a borderless scene: no central card, frame, or logo. A small left-aligned Loading percentage sits over a thin progress line at the bottom-left, while two theme motifs drift through the blurred game scene. The line moves above the corner cat on narrower screens. Regular Frames render text and images directly instead of flattening them into CanvasGroup textures.
+The loader is a borderless scene: no central card, frame, or logo. A centered Loading percentage sits over a bright four-pixel loading bar near the middle of the screen, while two theme motifs drift through the blurred game scene. The track and label are visible immediately, including at 0%. The bar is up to 420 pixels wide and narrows on phones without shrinking its thickness or text. It moves above the corner cat on shorter screens. Regular Frames render text and images directly instead of flattening them into CanvasGroup textures.
 
 The main UI retains the supplied original/Kitty/blossom logos and remembers the selected theme. Sidebar and minimized-button logos keep true circular masks, including the sidebar logo's backing. The main logo renders directly under Screen at whole pixel positions, follows the window, and keeps its visibility/fades. Resampling uses Roblox's default smooth filtering; the supplied PNGs are unchanged.
 

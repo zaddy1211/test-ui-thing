@@ -112,12 +112,12 @@ check("the loading line and corner host fit without overlap at all supported vie
         workspace.CurrentCamera.ViewportSize = Vector2.new(width,height)
         workspace.CurrentCamera.Changed:Fire()
         local c = __KZ_Cozy
-        local hostScale, stripScale = c.HostScale.Scale, c.StripScale.Scale
+        local hostScale = c.HostScale.Scale
         local hostLeft, hostTop = width - 16 - 420 * hostScale, height - 16 - 138 * hostScale
-        local stripLeft = c.LoadingStrip.Position.X.Offset
-        local stripRight = stripLeft + 304 * stripScale
-        local stripBottom = height + c.LoadingStrip.Position.Y.Offset
-        local stripTop = stripBottom - 44 * stripScale
+        local stripLeft = width * .5 - c.LoadingWidth * .5
+        local stripRight = stripLeft + c.LoadingWidth
+        local stripBottom = c.LoadingStrip.Position.Y.Offset
+        local stripTop = stripBottom - 44
         assert(hostLeft >= 0 and hostTop >= 0, "host clips the viewport")
         assert(stripLeft >= 0 and stripRight <= width and stripTop >= 0 and stripBottom <= height,
             "loading line clips the viewport")
@@ -222,10 +222,27 @@ check("the loader has no center card or center logo", function()
     assert(c.Panel == nil and c.Logo == nil)
     assert(c.Stage.BackgroundTransparency == 1 and c.LoadingStrip.BackgroundTransparency == 1)
     assert(c.LoadingStrip.Parent == Screen and c.Status.Parent == c.LoadingStrip)
-    assert(c.LoadingStrip.AnchorPoint.X == 0 and c.LoadingStrip.AnchorPoint.Y == 1)
-    assert(c.Status.TextXAlignment == "Left")
+    assert(c.LoadingStrip.AnchorPoint.X == .5 and c.LoadingStrip.AnchorPoint.Y == 1)
+    assert(c.Status.TextXAlignment == "Center")
     for _, child in ipairs(c.Stage:GetDescendants()) do
         assert(child.Image ~= LOGO and child.Name ~= "FrostedLoader", "center branding returned")
     end
+end)
+check("the loading bar is centered, visible immediately and stays four pixels tall on phones", function()
+    setup(); __KZ_Cozy.Begin()
+    local c = __KZ_Cozy
+    local track = c.Fill.Parent
+    assert(c.LoadingStrip.Position.X.Scale == .5 and c.LoadingStrip.Position.X.Offset == 0)
+    assert(c.LoadingWidth == 420 and c.LoadingStrip.Position.Y.Offset == 400)
+    assert(track.BackgroundTransparency <= .5 and track.Size.Y.Offset == 4)
+    assert(c.Status.TextTransparency == 0 and c.Status.Text == "Loading 0%")
+    assert(c.Fill.BackgroundTransparency == 0)
+    workspace.CurrentCamera.ViewportSize = Vector2.new(320,568)
+    workspace.CurrentCamera.Changed:Fire()
+    assert(c.LoadingWidth == 256 and c.LoadingStrip.Size.X.Offset == 256)
+    assert(track.Size.Y.Offset == 4 and c.Status.TextSize == 14 and c.StripScale == nil)
+    now = 2.25; RunService.RenderStepped:Fire()
+    assert(c.Status.Text == "Loading 50%")
+    assert(math.abs(c.Glint.Position.X.Offset - 114) < .001)
 end)
 print(tostring(count) .. " lifecycle tests passed")
