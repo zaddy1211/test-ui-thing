@@ -14,7 +14,7 @@ check("two ghosts drift within the open scene above the loading line", function(
             local x, y = effect.Node.Position.X.Offset, effect.Node.Position.Y.Offset
             assert(x >= 40 and x <= __KZ_Cozy.SceneWidth - 40, "ghost clips the screen")
             if effect.Node.Visible then
-                assert(y >= 44 and y <= __KZ_Cozy.SceneHeight - 44, "ghost crosses the mascot")
+                assert(y >= 56 and y <= __KZ_Cozy.SceneHeight - 56, "ghost glow crosses the mascot")
             end
         end
     end
@@ -42,7 +42,7 @@ check("progress waits for real milestones and success cleans up", function()
     advance(6)
     __KZ_Cozy.UpdateLoading()
     assert(__KZ_Cozy.Fill.Size.X.Scale == .96)
-    assert(__KZ_Cozy.Status.Text == "Loading 96%")
+    assert(__KZ_Cozy.Status.Text == "Applying settings  96%")
     assert(not Window.Active and __KZ_Cozy.Active)
     local motion = __KZ_Cozy.Motion
     __KZ_Cozy.Finish(); advance(4.2)
@@ -131,8 +131,8 @@ check("the mascot and loading bar stay centered and fit the supported viewport s
         now = 1.7; RunService.RenderStepped:Fire()
         for _, effect in ipairs(c.Decor) do
             if effect.Node.Visible then
-                assert(effect.Node.Position.Y.Offset + 44 <= hostTop - 24 + .001,
-                    "ghost overlaps the mascot")
+                assert(effect.Node.Position.Y.Offset + 56 <= hostTop - 24 + .001,
+                    "ghost glow overlaps the mascot")
             end
         end
     end
@@ -175,7 +175,7 @@ check("the UI opens only after 100 percent, around five seconds", function()
     assert(not Window.Visible and not Window.Active)
     assert(__KZ_Cozy.DisplayFraction < 1)
     advance(.12)
-    assert(__KZ_Cozy.Status.Text == "Loading 100%")
+    assert(__KZ_Cozy.Status.Text == "Ready!  100%")
     assert(not Window.Visible)
     advance(.15)
     assert(not Window.Active)
@@ -203,25 +203,29 @@ check("the direct main logo respects fades and hiding", function()
     Window.Visible, BrandLogoShell.Visible = true, false
     __KZ_Cozy.SyncBrandLogo(); assert(not BrandLogo.Visible)
 end)
-check("progress is smooth and monotonic and says Loading throughout", function()
+check("progress stays smooth while the status describes the loading sequence", function()
     setup(); __KZ_Cozy.Begin()
     __KZ_Cozy.Ready = true
     local previous = 0
+    local messages = {}
     for tick = 0, 270 do
         now = tick / 60
         __KZ_Cozy.UpdateLoading()
         assert(__KZ_Cozy.DisplayFraction >= previous)
         assert(__KZ_Cozy.DisplayFraction - previous < .01)
-        assert(__KZ_Cozy.Status.Text:sub(1,8) == "Loading ")
+        assert(__KZ_Cozy.Status.Text:match("%d+%%$"), "status lost the percentage")
+        messages[__KZ_Cozy.Status.Text:match("^(.-)  %d+%%$")] = true
         previous = __KZ_Cozy.DisplayFraction
     end
-    assert(__KZ_Cozy.Status.Text == "Loading 100%")
+    assert(__KZ_Cozy.Status.Text == "Ready!  100%")
+    assert(messages["Loading images…"] and messages["Setting up your UI…"] and messages["Finishing up…"])
 end)
 check("ghosts use one smooth sprite rather than assembled body rectangles", function()
-    setup(); __KZ_Cozy.Begin(); __KZ_Cozy.SetGhostAsset("test-ghost-sprite")
+    setup(); __KZ_Cozy.Begin(); __KZ_Cozy.SetGhostAsset("test-ghost-sprite", "test-soft-halo")
     for _, ghost in ipairs(__KZ_Cozy.Decor) do
         assert(ghost.Sprite.ClassName == "ImageLabel" and ghost.Glow.ClassName == "ImageLabel")
         assert(ghost.Sprite.Image == "test-ghost-sprite" and not ghost.Fallback.Visible)
+        assert(ghost.Glow.Image == "test-soft-halo" and ghost.Glow.Image ~= ghost.Sprite.Image)
         assert(ghost.Sprite.ResampleMode == "Default")
     end
 end)
@@ -237,21 +241,43 @@ check("the loader has no center card or center logo", function()
         assert(child.Image ~= LOGO and child.Name ~= "FrostedLoader", "center branding returned")
     end
 end)
-check("the loading bar is centered, visible immediately and stays four pixels tall on phones", function()
+check("the loading bar is centered, visible immediately and stays six pixels tall on phones", function()
     setup(); __KZ_Cozy.Begin()
     local c = __KZ_Cozy
     local track = c.Fill.Parent
     assert(c.LoadingStrip.Position.X.Scale == .5 and c.LoadingStrip.Position.X.Offset == 0)
     assert(c.LoadingWidth == 420 and c.LoadingStrip.Position.Y.Offset == 480)
-    assert(track.BackgroundTransparency <= .5 and track.Size.Y.Offset == 4)
-    assert(c.Status.TextTransparency == 0 and c.Status.Text == "Loading 0%")
+    assert(track.BackgroundTransparency <= .5 and track.Size.Y.Offset == 6)
+    assert(c.Glint.Size.Y.Offset == 6)
+    assert(c.Status.TextTransparency == 0 and c.Status.Text == "Loading images…  0%")
     assert(c.Fill.BackgroundTransparency == 0)
     workspace.CurrentCamera.ViewportSize = Vector2.new(320,568)
     workspace.CurrentCamera.Changed:Fire()
     assert(c.LoadingWidth == 256 and c.LoadingStrip.Size.X.Offset == 256)
-    assert(track.Size.Y.Offset == 4 and c.Status.TextSize == 14 and c.StripScale == nil)
+    assert(track.Size.Y.Offset == 6 and c.Status.TextSize == 14 and c.StripScale == nil)
     now = 2.25; RunService.RenderStepped:Fire()
-    assert(c.Status.Text == "Loading 50%")
+    assert(c.Status.Text == "Loading images…  50%")
     assert(math.abs(c.Glint.Position.X.Offset - 114) < .001)
+end)
+check("slow initialization displays its actual step while holding below 100 percent", function()
+    setup(); __KZ_Cozy.Begin(); advance(6)
+    __KZ_Cozy.Progress(2,"Loading interface…")
+    assert(__KZ_Cozy.Status.Text == "Loading interface…  96%")
+    __KZ_Cozy.Progress(3,"Loading settings…")
+    assert(__KZ_Cozy.Status.Text == "Loading settings…  96%")
+    assert(not Window.Visible)
+end)
+check("the soft ghost halo pulses gently and fades with the sprite", function()
+    setup(); __KZ_Cozy.Begin(); __KZ_Cozy.SetGhostAsset("ghost", "halo")
+    now = 1; RunService.RenderStepped:Fire()
+    for _, ghost in ipairs(__KZ_Cozy.Decor) do
+        assert(ghost.Glow.Size.X.Offset == 88 and ghost.Glow.Size.Y.Offset == 110)
+        assert(ghost.Glow.ImageTransparency >= .69 and ghost.Glow.ImageTransparency <= .75)
+    end
+    __KZ_Cozy.ExitStarted = now
+    now += .5; RunService.RenderStepped:Fire()
+    for _, ghost in ipairs(__KZ_Cozy.Decor) do
+        assert(ghost.Glow.ImageTransparency == 1 and ghost.Sprite.ImageTransparency == 1)
+    end
 end)
 print(tostring(count) .. " lifecycle tests passed")

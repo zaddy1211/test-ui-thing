@@ -18,7 +18,7 @@ assert(!source.includes('HASH BROWN · YOUR KZ HOST') && !source.includes('A lit
 assert(!source.includes('ConfigManager.Register("Short Repeat Intro"'), 'old short intro overrides requested pace');
 assert(!source.includes('Opening in ') && !source.includes('c.OpenAt'), 'old countdown returned');
 assert(!source.includes('Skip intro') && !source.includes('c.Skip') && !source.includes('__KZ_UI_OPTIONS.LoadAnimation == false'), 'loading can be skipped');
-assert(source.includes('thanks for using KZ! a little lag on load is normal.'), 'cat lag message missing');
+assert(source.includes('thanks for using kz <3\\na little lag on load is normal.'), 'cat greeting or lag note missing');
 assert(!source.includes('FrostedLoader') && !/c\.(Panel|Logo)\b/.test(source), 'center loading card or logo returned');
 for (const logo of ['BrandLogoShell','BrandLogo','OpenButton']) {
   assert(source.includes('New("UICorner", {Parent = '+logo+', CornerRadius = UDim.new(1, 0)})'), 'noncircular logo: '+logo);
@@ -36,11 +36,11 @@ console.log('PASS '+baseline.blocks.length+' production styling blocks unchanged
 for (const name of ['Toggle', 'Slider', 'RangeSlider', 'Dropdown', 'Button', 'Textbox', 'Keybind', 'Colorpicker', 'ConfigManager', 'LyraZen', 'KZAdapter']) {
   assert(source.includes(name + ' = ' + name), 'missing public API: ' + name);
 }
-for (const name of ['kz-logo-original-v2.png', 'kz-logo-kitty-v1.png', 'kz-logo-blossom-v1.png', 'hash-brown-host-v1.png', 'kz-ghost-soft-v1.png']) {
+for (const name of ['kz-logo-original-v2.png', 'kz-logo-kitty-v1.png', 'kz-logo-blossom-v1.png', 'hash-brown-host-v1.png', 'kz-ghost-soft-v1.png', 'kz-ghost-glow-v1.png']) {
   const png = fs.readFileSync(path.join(root, 'assets', name));
   assert(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])), 'invalid PNG: ' + name);
 }
-console.log('PASS test repository boundaries, public controls API, and five PNG assets');
+console.log('PASS test repository boundaries, public controls API, and six PNG assets');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kz-cozy-tests-'));
 try {
   const bundle = path.join(temp, 'intro-tests.luau');

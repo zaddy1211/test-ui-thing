@@ -642,6 +642,7 @@ function __KZ_Cozy.Begin()
     local c = __KZ_Cozy
     c.Active, c.Started = true, os.clock()
     c.Duration, c.DisplayFraction = 4.5, 0
+    c.RealStep, c.StageMessage = 1, "Loading images…"
     Window.Visible = false
     c.Veil = New("TextButton", {
         Parent = Screen, Name = "LoadingGlass", Size = UDim2.fromScale(1, 1), Text = "",
@@ -660,19 +661,19 @@ function __KZ_Cozy.Begin()
     })
     c.Status = New("TextLabel", {
         Parent = c.LoadingStrip, Size = UDim2.new(1, 0, 0, 24),
-        BackgroundTransparency = 1, Text = "Loading 0%", TextXAlignment = Enum.TextXAlignment.Center,
+        BackgroundTransparency = 1, Text = "Loading images…  0%", TextXAlignment = Enum.TextXAlignment.Center,
         Font = Enum.Font.GothamMedium, TextSize = 14, TextColor3 = Color3.fromRGB(239, 237, 244),
         TextStrokeTransparency = .8, ZIndex = 1021,
     })
     local track = New("Frame", {Parent = c.LoadingStrip, Name = "LoadingTrack", Position = UDim2.fromOffset(0, 36),
-        Size = UDim2.new(1, 0, 0, 4), BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        Size = UDim2.new(1, 0, 0, 6), BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BackgroundTransparency = .5, BorderSizePixel = 0, ZIndex = 1021})
     Corner(track, 4)
     c.Fill = New("Frame", {Parent = track, Size = UDim2.fromScale(0, 1),
         BackgroundColor3 = T.Accent, BorderSizePixel = 0, ZIndex = 1022})
     Corner(c.Fill, 4)
     Gradient(c.Fill, {"Accent3", "Accent", "Accent2"}, 0)
-    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,4),
+    c.Glint = New("Frame", {Parent = track, Size = UDim2.fromOffset(14,6),
         BackgroundColor3 = Color3.fromRGB(255,255,255), BackgroundTransparency = .4,
         BorderSizePixel = 0, Visible = false, ZIndex = 1023})
     Corner(c.Glint, 3)
@@ -713,9 +714,9 @@ function __KZ_Cozy.Begin()
             local sprite, glow, fallback
             if themeName == "Halloween" then
                 glow = New("ImageLabel", {Parent = decor, Name = "GhostGlow", AnchorPoint = Vector2.new(.5,.5),
-                    Position = UDim2.fromScale(.5,.5), Size = UDim2.fromOffset(64,80),
-                    BackgroundTransparency = 1, Image = c.GhostAsset or "", ImageColor3 = T.Accent3,
-                    ImageTransparency = .88, ScaleType = Enum.ScaleType.Fit,
+                    Position = UDim2.fromScale(.5,.5), Size = UDim2.fromOffset(88,110),
+                    BackgroundTransparency = 1, Image = c.GhostGlowAsset or "", ImageColor3 = T.Accent2,
+                    ImageTransparency = .7, ScaleType = Enum.ScaleType.Fit,
                     ResampleMode = Enum.ResamplerMode.Default, ZIndex = 1011})
                 sprite = New("ImageLabel", {Parent = decor, Name = "SoftGhost", Size = UDim2.fromScale(1,1),
                     BackgroundTransparency = 1, Image = c.GhostAsset or "", ImageTransparency = .24,
@@ -747,19 +748,20 @@ function __KZ_Cozy.Begin()
             c.Cat.Rotation = 0
         end
         for _, data in ipairs(c.Decor) do
-            data.Node.Visible = not c.Reduced and c.SceneHeight >= 88
+            data.Node.Visible = not c.Reduced and c.SceneHeight >= 112
             if not c.Reduced then
                 local exit = c.ExitStarted and math.clamp((os.clock() - c.ExitStarted) / .45, 0, 1) or 0
                 local phase = elapsed * 1.18 + data.Phase
                 local x = c.SceneWidth * data.X + math.sin(phase * .65) * 24 + data.Side * exit * 36
                 local y = c.SceneHeight * data.Y + math.sin(phase) * (data.Sprite and 26 or 12)
-                data.Node.Position = UDim2.fromOffset(math.clamp(x, 40, math.max(40, c.SceneWidth - 40)),
-                    math.clamp(y, 44, math.max(44, c.SceneHeight - 44)))
+                data.Node.Position = UDim2.fromOffset(math.clamp(x, 48, math.max(48, c.SceneWidth - 48)),
+                    math.clamp(y, 56, math.max(56, c.SceneHeight - 56)))
                 data.Node.Rotation = math.sin(phase - .4) * (data.Sprite and 5 or 2)
                 if data.Sprite then
                     local opacity = .7 + math.sin(phase * .7) * .1
                     data.Sprite.ImageTransparency = 1 - opacity * (1 - exit)
-                    data.Glow.ImageTransparency = 1 - .12 * (1 - exit)
+                    local glowOpacity = .28 + math.sin(phase * .7) * .03
+                    data.Glow.ImageTransparency = 1 - glowOpacity * (1 - exit)
                 end
             end
         end
@@ -806,16 +808,17 @@ end
 function __KZ_Cozy.Progress(step, message)
     local c = __KZ_Cozy
     c.RealStep, c.StageMessage = math.clamp(step, 1, 4), tostring(message)
-    if c.Error and c.Status and c.Status.Parent then c.Status.Text = "Could not load" end
+    if c.Error and c.Status and c.Status.Parent then c.Status.Text = "Could not load"
+    else c.UpdateLoading() end
 end
 
-function __KZ_Cozy.SetGhostAsset(asset)
+function __KZ_Cozy.SetGhostAsset(asset, glowAsset)
     local c = __KZ_Cozy
-    c.GhostAsset = asset
+    c.GhostAsset, c.GhostGlowAsset = asset, glowAsset
     if not c.Active or not asset then return end
     for _, data in ipairs(c.Decor) do
         if data.Sprite then
-            data.Sprite.Image, data.Glow.Image = asset, asset
+            data.Sprite.Image, data.Glow.Image = asset, glowAsset or ""
             data.Fallback.Visible = false
         end
     end
@@ -831,7 +834,12 @@ function __KZ_Cozy.UpdateLoading()
     local cap = (c.Ready and welcomeRead) and 1 or .96
     c.DisplayFraction = math.max(c.DisplayFraction, math.min(eased, cap))
     local percent = math.floor(c.DisplayFraction * 100 + .00001)
-    c.Status.Text = "Loading " .. percent .. "%"
+    local message = c.StageMessage or "Loading images…"
+    if c.Ready then
+        message = percent == 100 and "Ready!" or c.DisplayFraction < .28 and "Loading images…"
+            or c.DisplayFraction < .66 and "Setting up your UI…" or "Finishing up…"
+    end
+    c.Status.Text = message .. "  " .. percent .. "%"
     c.Fill.Size = UDim2.fromScale(c.DisplayFraction, 1)
     c.Glint.Visible = not c.Reduced and percent > 2 and percent < 100
     c.Glint.Position = UDim2.fromOffset(math.clamp(c.LoadingWidth * c.DisplayFraction - 14,
@@ -916,7 +924,7 @@ function __KZ_Cozy.ResizeIntro()
         c.LoadingWidth = math.max(1, math.min(420, viewport.X - 64))
         c.LoadingStrip.Size = UDim2.fromOffset(c.LoadingWidth, 44)
         -- Center the mascot, its speech and the bar as one group, with a twelve-pixel gap.
-        -- Resize the bar's width directly so its track and text never shrink away.
+        -- Resize the bar's width directly so its six-pixel track and text never shrink away.
         local groupHeight = 184 * hostScale + 12 + 44
         local barBottom = (viewport.Y + groupHeight) * .5
         local hostBottom = barBottom - 44 - 12
@@ -932,7 +940,9 @@ __KZ_Cozy.Begin()
 __KZ_Cozy.Progress(1, "Loading images…")
 if __KZ_Cozy.Active and themeName == "Halloween" then
     local destination = DownloadThemeArt("kz-ghost-soft-v1.png")
-    __KZ_Cozy.SetGhostAsset(destination and ResolveCustomAsset(destination))
+    local glowDestination = DownloadThemeArt("kz-ghost-glow-v1.png")
+    __KZ_Cozy.SetGhostAsset(destination and ResolveCustomAsset(destination),
+        glowDestination and ResolveCustomAsset(glowDestination))
 end
 if __KZ_Cozy.Active then
     local destination = DownloadThemeArt("hash-brown-host-v1.png")
@@ -942,7 +952,7 @@ if __KZ_Cozy.Active then
         __KZ_Cozy.CatFallback.Visible = false
     end
     __KZ_Cozy.WelcomeStarted = os.clock()
-    __KZ_Cozy.Say("thanks for using KZ! a little lag on load is normal.")
+    __KZ_Cozy.Say("thanks for using kz <3\na little lag on load is normal.")
 end
 LOGO = __KZ_Cozy.ResolveLogo(themeName)
 __KZ_Cozy.Progress(2, "Loading interface…")
