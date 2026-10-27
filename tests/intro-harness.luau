@@ -2,6 +2,8 @@
 local now, queue, nodes = 0, {}, {}
 local Screen, Window, Scale, destroyed, __KZ_Cozy, __KZ_UI_OPTIONS, themeName
 local BrandLogo, BrandLogoShell, Dim
+local WindowFade, windowFadeGradient, Artwork, ArtworkShade, ArtworkVignette
+local uiScaleFactor = 1
 __KZ_Cozy = {}
 local function signal()
     local s = {Listeners = {}}
@@ -18,7 +20,19 @@ local function signal()
 end
 local function New(class, props)
     local node = {ClassName = class, Children = {}, Destroying = signal(), Activated = signal(),
-        BackgroundTransparency = 0, TextTransparency = 0, TextStrokeTransparency = 1, ImageTransparency = 0}
+        Visible = true, BackgroundTransparency = 0, TextTransparency = 0, TextStrokeTransparency = 1, ImageTransparency = 0}
+    setmetatable(node, {__index = function(self, key)
+        if key == "Parent" then return rawget(self, "_Parent") end
+    end, __newindex = function(self, key, value)
+        if key ~= "Parent" then rawset(self, key, value); return end
+        local old = rawget(self, "_Parent")
+        if old then
+            local index = table.find(old.Children, self)
+            if index then table.remove(old.Children, index) end
+        end
+        rawset(self, "_Parent", value)
+        if value then table.insert(value.Children, self) end
+    end})
     for key, value in pairs(props or {}) do node[key] = value end
     function node:IsA(name)
         return name == self.ClassName or name == "GuiObject" and (self.ClassName == "Frame" or self.ClassName == "CanvasGroup"
@@ -32,14 +46,26 @@ local function New(class, props)
         end
         return result
     end
+    function node:FindFirstChildOfClass(className)
+        for _, child in ipairs(self.Children) do if child.ClassName == className then return child end end
+    end
+    function node:Clone()
+        local properties = {}
+        for key, value in pairs(self) do
+            if type(value) ~= "function" and key ~= "ClassName" and key ~= "Children" and key ~= "_Parent"
+                and key ~= "Destroying" and key ~= "Activated" then properties[key] = value end
+        end
+        local copy = New(self.ClassName, properties)
+        for _, child in ipairs(self.Children) do local cloned = child:Clone(); cloned.Parent = copy end
+        return copy
+    end
     function node:Destroy()
         if self.Dead then return end
         self.Dead = true
         self.Destroying:Fire()
-        for _, child in ipairs(self.Children) do child:Destroy() end
+        for _, child in ipairs(table.clone(self.Children)) do child:Destroy() end
         self.Parent = nil
     end
-    if node.Parent then table.insert(node.Parent.Children, node) end
     table.insert(nodes, node)
     return node
 end
@@ -102,8 +128,15 @@ local function setup(theme, reduced, short, loadAnimation)
     lighting = New("Lighting", {})
     local root = New("Root", {})
     Screen = New("ScreenGui", {Parent = root})
-    Window = New("CanvasGroup", {Parent = Screen, Visible = false, Active = false, GroupTransparency = 1})
+    Window = New("CanvasGroup", {Parent = Screen, Size = UDim2.fromOffset(900,540), ClipsDescendants = true,
+        Visible = false, Active = false, GroupTransparency = 1})
     Scale = New("UIScale", {Parent = Window, Scale = .8})
+    WindowFade = New("Frame", {Parent = Window, BackgroundColor3 = {Theme = theme}, ZIndex = 0})
+    windowFadeGradient = New("UIGradient", {Parent = WindowFade, Color = "theme-gradient", Offset = Vector2.new(0,0), Rotation = 20})
+    Artwork = New("ImageLabel", {Parent = Window, Image = (theme or "Halloween").."-background", ImageTransparency = .62,
+        Position = UDim2.fromOffset(-21,-21), Size = UDim2.new(1,42,1,42), ImageColor3 = {}, ZIndex = 1})
+    ArtworkShade = New("Frame", {Parent = Window, BackgroundColor3 = {}, BackgroundTransparency = .52, ZIndex = 2})
+    ArtworkVignette = New("Frame", {Parent = Window, BackgroundTransparency = .9, ZIndex = 3})
     Dim = New("Frame", {Parent = Screen, AbsolutePosition = Vector2.new(0,36)})
     BrandLogoShell = New("Frame", {Parent = Window, Visible = true,
         AbsolutePosition = Vector2.new(100.4,80.6), AbsoluteSize = Vector2.new(47.8,47.8)})
