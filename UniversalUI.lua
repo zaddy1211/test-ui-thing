@@ -343,12 +343,113 @@ end
 
 local executorName = DetectExecutor()
 
+-- Quick Love is local to this UI. No Roblox fonts or game interfaces are replaced.
+do
+    local f = {Directory = ASSET_DIR .. "/Fonts", Active = true, Done = false}
+    __KZ_Cozy.UIFont = f
+    f.Path = f.Directory .. "/quick-love-v1.ttf"
+    f.FamilyPath = f.Directory .. "/quick-love-v1.json"
+    f.URL = "https://raw.githubusercontent.com/zaddy1211/test-ui-thing/main/assets/fonts/quick-love-v1.ttf"
+
+    local function valid(bytes)
+        return type(bytes) == "string" and #bytes == 35436 and bytes:sub(1, 4) == "\0\1\0\0"
+    end
+    local function alive()
+        return f.Active and not destroyed and f.Root and f.Root.Parent ~= nil
+    end
+    local function notice()
+        if not f.Warned and alive() then
+            f.Warned = true
+            warn("KZ Test UI: Quick Love is unavailable on this executor; keeping the normal UI font.")
+        end
+    end
+    function f.Apply(object)
+        if not f.Face or not alive() then return end
+        pcall(function()
+            if not object:IsDescendantOf(f.Root) then return end
+            if not (object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox")) then return end
+            -- Keep emoji and symbol-only controls in their original font.
+            local text = tostring(object.Text or "")
+            if text ~= "" and not text:find("[%w]") then return end
+            object.FontFace = f.Face
+        end)
+    end
+    function f.Attach(root)
+        f.Root = root
+        f.Added = root.DescendantAdded:Connect(f.Apply)
+        f.Destroying = root.Destroying:Connect(function() f.Stop() end)
+        table.insert(connections, f.Added)
+        table.insert(connections, f.Destroying)
+    end
+    function f.Stop()
+        f.Active = false
+        for _, connection in ipairs({f.Added, f.Destroying}) do
+            pcall(function() connection:Disconnect() end)
+        end
+        f.Face, f.Root = nil, nil
+    end
+    local function resolve()
+        if type(writefile) ~= "function" or type(readfile) ~= "function"
+            or type(makefolder) ~= "function" or type(isfolder) ~= "function"
+            or not Font or type(Font.new) ~= "function" then return nil end
+        EnsureAssetFolders()
+        if not isfolder(f.Directory) then makefolder(f.Directory) end
+        local ok, bytes = pcall(readfile, f.Path)
+        if not ok or not valid(bytes) then
+            local requestAPI = (syn and syn.request) or (http and http.request) or request or http_request
+            if type(requestAPI) == "function" then
+                local downloaded, response = pcall(requestAPI, {Url = f.URL, Method = "GET", Timeout = 8})
+                if downloaded and type(response) == "table" and (not response.StatusCode or response.StatusCode == 200)
+                    and valid(response.Body) then bytes = response.Body else bytes = nil end
+            end
+            if not valid(bytes) and alive() and not f.Done then
+                local downloaded, body = pcall(function() return game:HttpGet(f.URL) end)
+                bytes = downloaded and body or nil
+            end
+            if not alive() or f.Done or not valid(bytes) then return nil end
+            writefile(f.Path, bytes)
+        end
+        if not alive() or f.Done then return nil end
+        local fontAsset = ResolveCustomAsset(f.Path)
+        if type(fontAsset) ~= "string" or fontAsset == "" then return nil end
+        local family = {
+            name = "Quick Love",
+            faces = {{name = "Regular", weight = 400, style = "normal", assetId = fontAsset}},
+        }
+        writefile(f.FamilyPath, game:GetService("HttpService"):JSONEncode(family))
+        local familyAsset = ResolveCustomAsset(f.FamilyPath)
+        if type(familyAsset) ~= "string" or familyAsset == "" then return nil end
+        -- Font.new alone can succeed before an unsupported asset fails to load.
+        local info = game:GetService("TextService"):GetFamilyInfoAsync(familyAsset)
+        if type(info) ~= "table" or type(info.Faces) ~= "table" or #info.Faces == 0 then return nil end
+        return Font.new(familyAsset, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    end
+    function f.Start()
+        if f.Started or not alive() then return end
+        f.Started = true
+        -- A stalled font request must never hold the UI's loading sequence open.
+        task.delay(8, function()
+            if not f.Done and alive() then f.Done = true; notice() end
+        end)
+        task.spawn(function()
+            local ok, face = pcall(resolve)
+            if not alive() or f.Done then return end
+            f.Done = true
+            if not ok or not face then notice(); return end
+            f.Face = face
+            for _, object in ipairs(f.Root:GetDescendants()) do f.Apply(object) end
+        end)
+    end
+end
+-- End UI-local Quick Love font.
+
 local function New(className, props)
     local object = Instance.new(className)
     for property, value in pairs(props or {}) do
         if property ~= "Parent" then object[property] = value end
     end
     if props and props.Parent then object.Parent = props.Parent end
+    __KZ_Cozy.UIFont.Apply(object)
     return object
 end
 
@@ -479,6 +580,7 @@ local Screen = New("ScreenGui", {
     Parent = parent, Name = "KZScriptsUniversalTest", ResetOnSpawn = false,
     IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 })
+__KZ_Cozy.UIFont.Attach(Screen)
 
 local Dim = New("Frame", {
     Parent = Screen, Name = "Dim", Size = UDim2.fromScale(1, 1),
@@ -952,6 +1054,7 @@ function __KZ_Cozy.ResizeIntro()
 end
 
 __KZ_Cozy.Begin()
+__KZ_Cozy.UIFont.Start()
 __KZ_Cozy.Progress(1, "Loading images…")
 UpdateThemeArt(themeName, false)
 __KZ_Cozy.SyncLoadingArtwork()
@@ -4205,6 +4308,7 @@ function __KZ_WindowMethods:Notify(title,text,duration) return Toast(title,text,
 function __KZ_WindowMethods:Unload()
     if destroyed then return end
     destroyed = true
+    __KZ_Cozy.UIFont.Stop()
     __KZ_Cozy.Cleanup(false)
     for _, hook in ipairs(__KZ_UnloadHooks) do pcall(hook) end
     pcall(function() UserInputService.MouseIconEnabled = true end)
@@ -4674,4 +4778,5 @@ end
 if __KZ_UI_OPTIONS.ManualReady ~= true then __KZ_Cozy.Finish() end
 return KZAdapter.__KZ_UI_API
 end
+
 
